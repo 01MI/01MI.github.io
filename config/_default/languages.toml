@@ -4,3 +4,9 @@ languageName = "English"
 languagedirection = "ltr"
 title = "01MI"
 weight = 1
+
+[fr]
+languageName = "Français"
+languagedirection = "ltr"
+title = "01MI"
+weight = 2
