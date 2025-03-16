@@ -1,12 +1,12 @@
 # Rename this file to languages.toml to enable multilingual support
 [en]
-languageName = "🇬🇧 English"
+languageName = "🥞 English"
 languagedirection = "ltr"
 title = "01MI"
 weight = 1
 
 [fr]
-languageName = "🇫🇷 Français"
+languageName = "🥐 Français"
 languagedirection = "ltr"
 title = "01MI"
 weight = 2

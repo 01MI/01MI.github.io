@@ -1,3 +1,5 @@
+googleAnalytics = "G-6B3GS05WV6"
+
 # Change baseurl before deploy
 baseurl = "https://01MI.github.io"
 languageCode = "en-us"
