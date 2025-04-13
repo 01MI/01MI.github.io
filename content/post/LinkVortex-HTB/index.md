@@ -212,7 +212,7 @@ fi
 
 We can use two approaches to bypass these checks and read the `root.txt` file: nested symlinks or TOCTOU exploit.
 
-### Method 1: nested symlinks
+### Method 1: Nested symlinks
 We create two symlinks, link1.png to link2.png and link2.png points to /root/root.txt.\
 This way, link1 bypasses the keyword check since its target doesn't contain `(etc|root)`.
 
