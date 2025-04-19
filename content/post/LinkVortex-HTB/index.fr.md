@@ -16,7 +16,7 @@ tags:
 
 # weight: 1       # You can add weight to some posts to override the default sorting (date descending)
 ---
-## Summary
+## Résumé
 User: Répertoire .git exposé & CVE-2023-40028\
 Root: Exploitation de liens symboliques imbriqués ou TOCTOU
 
@@ -212,7 +212,7 @@ fi
 
 On peut utiliser deux approches pour contourner ces vérifications et lire root.txt : les liens symboliques imbriqués ou en exploitant la race condition entre la verification du lien symbolique et la lecture de celui-ci.
 
-### Method 1: Liens symboliques imbriqués
+### Methode 1: Liens symboliques imbriqués
 On crée deux liens symboliques, link1.png vers link2.png et link2.png vers /root/root.txt.\
 De cette façon, link1 contourne la vérification des termes.
 
@@ -228,7 +228,7 @@ Content:
 6<...>3
 {{< /highlight >}}
 
-### Method 2: TOCTOU 
+### Methode 2: TOCTOU 
 Le script vérifie si le fichier est un lien symbolique via ```/usr/bin/test -L link.png```. Ensuite, il utilise ```basename``` et ```readlink``` en se basant sur cette hypothèse.\
 Entre cette vérification et la lecture du lien, on peut exploiter la vulnérabilité en interchangeant continuellement la cible du lien symbolique de ```/tmp/random``` à ```/root/root.txt```.
 
@@ -261,7 +261,7 @@ Content:
 {{< /highlight >}}
 
 
-## Resources
+## Ressources
 > [CVE-2023-40028 exploit](https://github.com/0xDTC/Ghost-5.58-Arbitrary-File-Read-CVE-2023-40028)\
 > [GitHack](https://github.com/lijiejie/GitHack)\
 > [CTF Writeup: picoCTF 2023 - "Tic-Tac"](https://brandon-t-elliott.github.io/tic-tac)
