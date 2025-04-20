@@ -18,3 +18,9 @@ disqusShortname = "hugo-theme-stack"
 
 [pagination]
 pagerSize = 5
+
+[sitemap]
+  changeFreq = 'hourly'
+  disable = false
+  filename = 'sitemap.xml'
+  priority = -1
