@@ -4,7 +4,7 @@
 {{- $description := partialCached "data/description" . .RelPermalink -}}
 <meta name='description' {{ printf "content=%q" $description | safeHTMLAttr }}>
 {{ with .Params.Keywords }}<meta name="keywords" content="{{ delimit . ", " }}">{{ end }}
-
+<meta name="google-site-verification" content="_edZRF0IDWDYusRcZIg0DI2uJdltrXcQrjY8Cq3BGog" />
 {{- $title := partial "data/title" . -}}
 <title>{{ $title }}</title>
 
