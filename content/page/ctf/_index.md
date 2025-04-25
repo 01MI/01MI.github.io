@@ -1,4 +1,5 @@
 ---
+layout: ctf
 menu:
     main:
         name: CTF Writeups

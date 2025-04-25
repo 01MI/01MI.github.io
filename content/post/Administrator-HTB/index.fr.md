@@ -53,7 +53,7 @@ PORT      STATE SERVICE
 59655/tcp open  unknown
 {{< /highlight >}}
 
-On utilise ``bloodhound-python` avec le compte fourni `Olivia:ichliebedich` afin de récupérer des informations concernant le domaine `administrator.htb` (qu'on ajoute à notre /etc/hosts).
+On utilise `bloodhound-python` avec le compte fourni `Olivia:ichliebedich` afin de récupérer des informations concernant le domaine `administrator.htb` (qu'on ajoute à notre /etc/hosts).
 
 Rapidement, nous identifions qu'il va falloir compromettre le compte d'Ethan pour DCSync et récupérer le hash du domain admin.
 ![](InitialBH.png)

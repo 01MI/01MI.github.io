@@ -1,4 +1,5 @@
 ---
+layout: htb
 menu:
     main:
         name: HTB Writeups

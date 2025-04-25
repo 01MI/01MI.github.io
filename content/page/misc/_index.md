@@ -1,4 +1,5 @@
 ---
+layout: misc
 menu:
     main:
         name: Misc
