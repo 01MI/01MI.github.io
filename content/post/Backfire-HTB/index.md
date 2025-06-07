@@ -39,7 +39,7 @@ PORT     STATE    SERVICE
 
 The directory listing exposed on the port 8000 allows us to retrieve two files:
 - `disable.tls.patch`: This file indicates that TLS is disabled for WebSocket management on port 40056, allowing an unsecure connection.
-- `havoc.yaotl`:  A configuration file for the Havoc C2 framework.
+- `havoc.yaotl`:  A configuration file for the [Havoc](https://github.com/HavocFramework/Havoc) C2 framework.
 
 ![](DL-Backfire.PNG)
 
