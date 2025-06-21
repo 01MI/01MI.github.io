@@ -9,9 +9,10 @@ categories:
     - Linux
     - Easy
 tags:
-    - LFI
+    - Path traversal
     - Gitea
     - ImageMagick
+    - CVE-2024-41817
 # weight: 1       # You can add weight to some posts to override the default sorting (date descending)
 ---
 ## Résumé
