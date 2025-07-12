@@ -23,7 +23,7 @@ Root: Execution de code arbitraire via CVE-2024-41817(ImageMagick).
 A l'aide d'un scan nmap, nous pouvons identifier un service web sur le port 80 et SSH sur le port 22.
 
 {{< highlight go "hl_lines=1 3 7" >}}
-nmap -Pn -p 80,22 10.129.175.139 -v -A
+$ nmap -Pn -p 80,22 10.129.175.139 -v -A
 PORT   STATE SERVICE VERSION
 22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux; protocol 2.0)
 | ssh-hostkey: 
