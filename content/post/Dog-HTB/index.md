@@ -182,4 +182,4 @@ root.txt
 
 ## Resources
 > [GitHack](https://github.com/lijiejie/GitHack)\
-> [Backdrop v1.27.1](https://www.exploit-db.com/exploits/52021)
+> [RCE exploit - Backdrop v1.27.1](https://www.exploit-db.com/exploits/52021)
