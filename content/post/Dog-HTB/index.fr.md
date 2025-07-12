@@ -85,7 +85,7 @@ Cet [exploit](https://www.exploit-db.com/exploits/52021) pourrait fonctionner ma
 Nous pouvons trouver cette information via l'onget `Functionality` puis `Install new modules`.
 ![](Backdrop_zip.png)
 
-Nous allons créer notre propre archive `.tar` en utilisant le code HTML/PHP et le fichier `.info` fournis dans l'exploit.\
+Nous allons créer notre propre archive `.tar` en utilisant le code HTML/PHP et contenu de `shell.info` fournis dans l'exploit.\
 Ensuite, sur la page d'installation des modules, nous uploadons notre archive.
 {{< highlight go "hl_lines=1 19 36" >}}
 $ cat shell.php   

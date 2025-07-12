@@ -83,7 +83,7 @@ The following [exploit](https://www.exploit-db.com/exploits/52021) could work bu
 We can find this information in the `Functionality` tab then `Install new modules`.
 ![](Backdrop_zip.png)
 
-So, we are going to take the code and `.info` files of this exploit in order to create a `shell.tar` archive.\
+So, we are going to take the HTML/PHP code and `shell.info` content of this exploit in order to create a `shell.tar` archive.\
 Then, on the same page we are going to install this new module.
 {{< highlight go "hl_lines=1 19 36" >}}
 $ cat shell.php   
